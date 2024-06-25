@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bastien Le Lan - Portfolio</title>
+    <style>
+        /* CSS styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+            padding: 20px;
+        }
+        header {
+            background: #50b3a2;
+            color: white;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #e8491d 3px solid;
+        }
+        header a {
+            color: #ffffff;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 16px;
+        }
+        header ul {
+            padding: 0;
+            list-style: none;
+        }
+        header li {
+            display: inline;
+            padding: 0 20px 0 20px;
+        }
+        header #branding {
+            float: left;
+        }
+        header #branding h1 {
+            margin: 0;
+        }
+        header nav {
+            float: right;
+            margin-top: 10px;
+        }
+        header .highlight, header .current a {
+            color: #e8491d;
+            font-weight: bold;
+        }
+        header a:hover {
+            color: #ffffff;
+            font-weight: bold;
+        }
+        #showcase {
+            min-height: 400px;
+            background: url('/api/placeholder/1200/400') no-repeat center center/cover;
+            text-align: center;
+            color: #ffffff;
+        }
+        #showcase h1 {
+            margin-top: 100px;
+            font-size: 55px;
+            margin-bottom: 10px;
+        }
+        #showcase p {
+            font-size: 20px;
+        }
+        #main {
+            padding: 20px;
+            background: #ffffff;
+            margin-top: 20px;
+        }
+        #main h2 {
+            color: #50b3a2;
+        }
+        footer {
+            padding: 20px;
+            margin-top: 20px;
+            color: #ffffff;
+            background-color: #50b3a2;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div id="branding">
+                <h1><span class="highlight">Bastien Le Lan</span> Portfolio</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li class="current"><a href="#home">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#education">Education</a></li>
+                    <li><a href="#experience">Experience</a></li>
+                    <li><a href="#skills">Skills</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section id="showcase">
+        <div class="container">
+            <h1>Data Science and Neuro-Computational Engineer</h1>
+            <p>Bridging the gap between biological and artificial intelligence</p>
+        </div>
+    </section>
+
+    <section id="main">
+        <div class="container">
+            <h2 id="about">About Me</h2>
+            <p>I am an EPFL Data Science engineer with a minor in computational neuroscience and a bachelor in life science engineering. My primary interest is to better understand neural mechanisms and their links to deep learning algorithms to improve both bio-inspired DL and brain modelisations.</p>
+
+            <h2 id="education">Education</h2>
+            <ul>
+                <li>2024: Master Degree in Data Sciences Engineering, École Polytechnique Fédérale de Lausanne</li>
+                <li>2020: Bachelor Degree in Life Sciences Engineering, École Polytechnique Fédérale de Lausanne</li>
+            </ul>
+
+            <h2 id="experience">Research Experience</h2>
+            <ul>
+                <li>2024: Master Thesis and Research in bio-inspired ML, Boston Children Hospital Institute - Harvard Medical School</li>
+                <li>2023: Semester Research Project, SIMPLA lab - University of Oslo (UiO)</li>
+                <li>2023: Semester Research Project, Mathis lab - EPFL</li>
+                <li>2021: Intern in Lixoft</li>
+                <li>2019: Bachelor Research Project, CIBM - EPFL</li>
+            </ul>
+
+            <h2 id="skills">Skills</h2>
+            <ul>
+                <li>Machine Learning: Projects in Python (scipy, pytorch, spark) using classic and state-of-the-art architectures and algorithms</li>
+                <li>Informatic languages: Julia, C++, Scala (Spark), R, SQL, MATLAB</li>
+                <li>Biology and lab work: Broad human biology knowledge, physiological and chemistry lab experience</li>
+            </ul>
+        </div>
+    </section>
+
+    <footer>
+        <p>Bastien Le Lan &copy; 2024</p>
+    </footer>
+
+    <script>
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
