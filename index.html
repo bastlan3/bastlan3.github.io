@@ -21,11 +21,11 @@
             padding: 20px;
         }
         header {
-            background: #50b3a2;
+            background: #DC143C; /* Changed to Crimson */
             color: white;
             padding-top: 30px;
             min-height: 70px;
-            border-bottom: #e8491d 3px solid;
+            border-bottom: #8B0000 3px solid; /* Darker shade of Crimson */
         }
         header a {
             color: #ffffff;
@@ -52,18 +52,18 @@
             margin-top: 10px;
         }
         header .highlight, header .current a {
-            color: #e8491d;
+            color: #FFD700; /* Gold color for contrast */
             font-weight: bold;
         }
         header a:hover {
-            color: #ffffff;
+            color: #FFD700;
             font-weight: bold;
         }
         #showcase {
             min-height: 400px;
             background: url('/api/placeholder/1200/400') no-repeat center center/cover;
             text-align: center;
-            color: #ffffff;
+            color: #000000; /* Changed to black */
         }
         #showcase h1 {
             margin-top: 100px;
@@ -79,13 +79,13 @@
             margin-top: 20px;
         }
         #main h2 {
-            color: #50b3a2;
+            color: #DC143C; /* Changed to Crimson */
         }
         footer {
             padding: 20px;
             margin-top: 20px;
             color: #ffffff;
-            background-color: #50b3a2;
+            background-color: #DC143C; /* Changed to Crimson */
             text-align: center;
         }
     </style>
@@ -118,7 +118,7 @@
     <section id="main">
         <div class="container">
             <h2 id="about">About Me</h2>
-            <p>I am an EPFL Data Science engineer with a minor in computational neuroscience and a bachelor in life science engineering. My primary interest is to better understand neural mechanisms and their links to deep learning algorithms to improve both bio-inspired DL and brain modelisations.</p>
+            <p>I am an EPFL Data Science engineer with a minor in computational neuroscience and a bachelor in life science engineering. My primary interest is to better understand neural mechanisms and their links to deep learning algorithms to improve both bio-inspired DL and brain modelisations. Ever since middle school, my curiosity has driven me to question how the brain functions and what mechanisms underlie cognition.</p>
 
             <h2 id="education">Education</h2>
             <ul>
@@ -127,13 +127,20 @@
             </ul>
 
             <h2 id="experience">Research Experience</h2>
-            <ul>
-                <li>2024: Master Thesis and Research in bio-inspired ML, Boston Children Hospital Institute - Harvard Medical School</li>
-                <li>2023: Semester Research Project, SIMPLA lab - University of Oslo (UiO)</li>
-                <li>2023: Semester Research Project, Mathis lab - EPFL</li>
-                <li>2021: Intern in Lixoft</li>
-                <li>2019: Bachelor Research Project, CIBM - EPFL</li>
-            </ul>
+            <h3>2024: Master Thesis and Research in bio-inspired ML, Boston Children Hospital Institute - Harvard Medical School</h3>
+            <p>Currently working on developing and validating novel neural network architecture evolution, specifically using biologically plausible neuronal plasticity rules to grow and then prune different deep learning architectures. This ongoing project aims to test the hypothesis that CNN models of the visual cortex are making good predictions of the primate one. Using this hypothesis, we're exploring if it's possible to discriminate the performances of robustified adversarial models versus the brain using adversarial images.</p>
+
+            <h3>2023: Semester Research Project, SIMPLA lab - University of Oslo (UiO)</h3>
+            <p>Worked on the prediction of Allen institute electrophysiological neural data in mice using deep learning. The project involved building several models predicting the spike counts in response to images (natural scenes or gratings) in the V1 cortex of a mouse using Neuropixel data. Among the 5 models benchmarked, a CNN model using pre-trained image classification weights and linear-batchnorm-linear layers made good predictions on the average spike counts. Additionally, created images that would cause the most spikes for a predicted neuron, to investigate the relationship between these most exciting images and the predicted neuron position.</p>
+
+            <h3>2023: Semester Research Project, Mathis lab - EPFL</h3>
+            <p>Conducted policy analysis in the learning process of the winning model from the Myosuite baoding ball challenge. This involved working with a musculoskeletal simulator using curriculum learning and PPO with LSTM algorithm. Specifically, worked on low dimension projection of an RL model of musculoskeletal motor control of the forearm and the hand. Used CEBRA (a machine-learning method used to compress time series that reveals structures in the variability of the data) to show how the model stored environmental variables during a trial and how the LSTM cell learned along the curriculum learning process to act for new tasks.</p>
+
+            <h3>2021: Intern in Lixoft</h3>
+            <p>Built a library of mathematical models of viruses via an extensive literature review to be used on the Monolix suite.</p>
+
+            <h3>2019: Bachelor Research Project, CIBM - EPFL</h3>
+            <p>Mapped the auditory pathway using different MRI techniques.</p>
 
             <h2 id="skills">Skills</h2>
             <ul>
