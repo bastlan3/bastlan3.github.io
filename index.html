@@ -495,7 +495,7 @@
                     node.y = Math.random() * canvas.height;
                 });
                
-            }, 250);
+            }, 10);
         }
         
         class Node {
@@ -583,8 +583,9 @@
         
         // Proper event listeners
         window.addEventListener('load', () => {
-            resizeCanvas();
+            
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            resizeCanvas();
             animate();
         });
         
