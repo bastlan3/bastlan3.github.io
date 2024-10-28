@@ -500,6 +500,7 @@
         
         class Node {
             constructor() {
+                this.radius = 3;
                 this.reset();
             }
             
@@ -548,13 +549,14 @@
             ctx.fillStyle = '#DC143C';
             ctx.strokeStyle = '#DC143C';
             ctx.lineWidth = 0.8;
+            ctx.globalAlpha = 1;
         
             nodes.forEach(node => {
                 node.update();
                 
                 // Draw node
                 ctx.beginPath();
-                ctx.arc(node.x, node.y, 3, 0, Math.PI * 2);
+                ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
                 ctx.fill();
         
                 // Draw connections with performance optimization
@@ -583,6 +585,7 @@
         window.addEventListener('resize', resizeCanvas);
         window.addEventListener('load', () => {
             resizeCanvas();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             animate();
         });
         
