@@ -14,6 +14,9 @@
             padding: 0;
             background-color: #f4f4f4;
         }
+        .secondary-color {
+            color: #21295C; /* New secondary color */
+        }
         .container {
             width: 80%;
             margin: auto;
@@ -62,6 +65,7 @@
         #showcase {
             min-height: 400px;
             background: url('/api/placeholder/1200/400') no-repeat center center/cover;
+            background: linear-gradient(#F7F7F7, #f4f4f4); /* Optional background gradient */
             text-align: center;
             color: #000000; /* Changed to black */
         }
@@ -110,7 +114,47 @@
         .course-list-link:hover {
             background-color: #8B0000;
         }
+        #contact {
+            background: #ffffff;
+            padding: 40px 0;
+            margin-top: 20px;
+        }
+
+        .contact-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .contact-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .contact-item a {
+            color: #DC143C;
+            text-decoration: none;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .contact-item i {
+            font-size: 24px;
+        }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <header>
@@ -126,6 +170,7 @@
                     <li><a href="#experience">Experience</a></li>
                     <li><a href="#skills">Skills</a></li>
                     <li><a href="#extracurricular">Extracuricular</a></li>
+                    <li><a href="#contact">Contact</a></li>
                 </ul>
             </nav>
         </div>
@@ -208,6 +253,24 @@
               <li><strong>SV Travel Head of Sponsoring:</strong> Secured sponsors for the 3rd year trip to explore industries and new universities</li>
 
             </ul>
+            
+            
+            <h2 id="contact">Contact Me</h2>
+            <div class="contact-container">
+                <div class="contact-item">
+                    <a href="mailto:bastien_lelan(at)hms.harvard.edu">
+                        <i class="fas fa-envelope"></i>
+                        Email Me
+                    </a>
+                </div>
+                <div class="contact-item">
+                    <a href="https://twitter.com/bastlan3" target="_blank">
+                        <i class="fab fa-x-twitter"></i>
+                        Follow on X
+                    </a>
+                </div>
+            </div>
+                
   </div>
 </div>
         </div>
