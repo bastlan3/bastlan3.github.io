@@ -554,7 +554,7 @@
                 
                 // Draw node
                 ctx.beginPath();
-                ctx.arc(node.x, node.y, 2, 0, Math.PI * 2);
+                ctx.arc(node.x, node.y, 3, 0, Math.PI * 2);
                 ctx.fill();
         
                 // Draw connections with performance optimization
@@ -569,7 +569,7 @@
                         ctx.beginPath();
                         ctx.moveTo(node.x, node.y);
                         ctx.lineTo(otherNode.x, otherNode.y);
-                        ctx.globalAlpha = 0.2 * (1 - distance / 100);
+                        ctx.globalAlpha =  (1 - distance / 300);
                         ctx.stroke();
                     }
                 });
