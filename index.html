@@ -490,7 +490,10 @@
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
                 // Recreate nodes when canvas is resized
-                nodes = createNodes();
+                nodes.forEach(node => {
+                    node.x = Math.random() * canvas.width;
+                    node.y = Math.random() * canvas.height;
+                });
                 animate();
             }, 250);
         }
@@ -570,6 +573,7 @@
                         ctx.stroke();
                     }
                 });
+                ctx.globalAlpha = 1; 
             });
             
             ctx.globalAlpha = 1;
@@ -588,7 +592,7 @@
             cancelAnimationFrame(animationFrameId);
             window.removeEventListener('resize', resizeCanvas);
         }
-        
+        window.addEventListener('unload', cleanup);
 
         // Modify your existing smooth scrolling code
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
