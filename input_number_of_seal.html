@@ -1,6 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <title>Set Seal Number</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px;
+            width: 200px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Set Seal Number of the Day</h1>
+    <input type="number" id="numberInput">
+    <button onclick="setSealNumber()">Update</button>
+
+    <script>
+        function setSealNumber() {
+            const number = document.getElementById('numberInput').value;
+            if (number) {
+                localStorage.setItem('currentSealNumber', number);
+                alert('Number updated!');
+            }
+        }
+    </script>
+</body>
+<head>
     <title>Update Seal Image</title>
     <style>
         body {
