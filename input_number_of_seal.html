@@ -31,9 +31,15 @@
     <script>
         function setSealNumber() {
             const number = document.getElementById('numberInput').value;
-            if (number) {
-                localStorage.setItem('currentSealNumber', number);
+            if (number<1) {
+                localStorage.setItem('currentSealNumber', 0);
                 alert('Number updated!');
+            }if(number>4){
+                localStorage.setItem('currentSealNumber', 4);
+                alert('Number updated!');
+            }else{
+               localStorage.setItem('currentSealNumber', number);
+                alert('Number updated!'); 
             }
         }
     </script>
