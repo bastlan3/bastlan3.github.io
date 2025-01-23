@@ -1,48 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Seal Display</title>
+    <title>Seal Number Display</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             margin-top: 50px;
         }
+        #display {
+            font-size: 48px;
+            margin: 20px;
+        }
         img {
-            max-width: 80%;
-            height: auto;
+            max-width: 300px;
             margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <h1 id="displayText"></h1>
-    <img id="displayImage" alt="Seal Image">
-    
+    <h1>Current Seal Number of the Day</h1>
+    <div id="display">Loading...</div>
+    <img id="sealImage" alt="Seal Image">
+
     <script>
-        // Content configuration
-        const contentData = {
-            1: {
-                text: "Day 1 - Welcome!",
-                image: "images/day1.jpg"
-            },
-            2: {
-                text: "Day 2 - Progress",
-                image: "images/day2.jpg"
-            }
+        // Simple content mapping
+        const sealData = {
+            1: { text: "Day One", image: "img/day1.jpg" },
+            2: { text: "Day Two", image: "img/day2.jpg" },
+            3: { text: "Day Three", image: "img/day3.jpg" }
         };
 
-        // Get number from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const number = urlParams.get('number');
-
-        // Update content
-        if (number && contentData[number]) {
-            document.getElementById('displayText').textContent = contentData[number].text;
-            document.getElementById('displayImage').src = contentData[number].image;
-        } else {
-            document.getElementById('displayText').textContent = "Invalid number!";
+        function updateDisplay() {
+            const currentNumber = localStorage.getItem('currentSealNumber') || 1;
+            const content = sealData[currentNumber] || sealData[1];
+            
+            document.getElementById('display').textContent = content.text;
+            document.getElementById('sealImage').src = content.image;
         }
+
+        // Update on load and storage changes
+        updateDisplay();
+        window.addEventListener('storage', updateDisplay);
     </script>
 </body>
 </html>
