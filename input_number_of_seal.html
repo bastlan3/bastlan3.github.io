@@ -29,19 +29,22 @@
     <button onclick="setSealNumber()">Update</button>
 
     <script>
-        function setSealNumber() {
-            const number = document.getElementById('numberInput').value;
-            if (number<1) {
-                localStorage.setItem('currentSealNumber', 0);
-                alert('Number updated!');
-            }else if(number>4){
-                localStorage.setItem('currentSealNumber', 4);
-                alert('Number updated!');
-            }else{
-               localStorage.setItem('currentSealNumber', number);
-                alert('Number updated!'); 
-            }
+        <script>
+    function setSealNumber() {
+        // Convert input value to a number using parseInt()
+        const number = parseInt(document.getElementById('numberInput').value);
+        
+        if (number < 1) {
+            localStorage.setItem('currentSealNumber', 0);
+        } else if (number > 4) {
+            localStorage.setItem('currentSealNumber', 4);
+        } else {
+            // Store as number (not string)
+            localStorage.setItem('currentSealNumber', number);
         }
+        alert('Number updated!');
+    }
+</script>
     </script>
 </body>
 </html>
