@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Set Number</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Enter Seal Number</h1>
+    <input type="number" id="numberInput" min="1">
+    <button onclick="goToDisplay()">Show</button>
+
+    <script>
+        function goToDisplay() {
+            const number = document.getElementById('numberInput').value;
+            if (number) {
+                window.location.href = `sealday.html?number=${number}`;
+            }
+        }
+    </script>
+</body>
+</html>
