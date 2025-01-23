@@ -1,15 +1,48 @@
-
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Seal Day</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Seal Display</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        img {
+            max-width: 80%;
+            height: auto;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-    <div id="content">
-        <h1 id="display-text">Loading...</h1>
-        <img id="display-image" src="" alt="Daily Image">
-    </div>
-    <script src="script_sealday.js"></script>
+    <h1 id="displayText"></h1>
+    <img id="displayImage" alt="Seal Image">
+    
+    <script>
+        // Content configuration
+        const contentData = {
+            1: {
+                text: "Day 1 - Welcome!",
+                image: "images/day1.jpg"
+            },
+            2: {
+                text: "Day 2 - Progress",
+                image: "images/day2.jpg"
+            }
+        };
+
+        // Get number from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const number = urlParams.get('number');
+
+        // Update content
+        if (number && contentData[number]) {
+            document.getElementById('displayText').textContent = contentData[number].text;
+            document.getElementById('displayImage').src = contentData[number].image;
+        } else {
+            document.getElementById('displayText').textContent = "Invalid number!";
+        }
+    </script>
 </body>
 </html>
