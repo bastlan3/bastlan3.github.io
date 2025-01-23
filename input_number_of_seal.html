@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Set Number</title>
+    <title>Set Seal Number</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,6 +12,7 @@
             padding: 10px;
             font-size: 16px;
             margin: 10px;
+            width: 200px;
         }
         button {
             padding: 10px 20px;
@@ -23,15 +24,16 @@
     </style>
 </head>
 <body>
-    <h1>Enter Seal Number</h1>
-    <input type="number" id="numberInput" min="1">
-    <button onclick="goToDisplay()">Show</button>
+    <h1>Set Seal Number of the Day</h1>
+    <input type="number" id="numberInput">
+    <button onclick="setSealNumber()">Update</button>
 
     <script>
-        function goToDisplay() {
+        function setSealNumber() {
             const number = document.getElementById('numberInput').value;
             if (number) {
-                window.location.href = `sealday.html?number=${number}`;
+                localStorage.setItem('currentSealNumber', number);
+                alert('Number updated!');
             }
         }
     </script>
