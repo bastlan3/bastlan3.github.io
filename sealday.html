@@ -38,8 +38,9 @@
             const currentNumber = localStorage.getItem('currentSealNumber') || 1;
             const content = sealData[currentNumber] || sealData[1];
             
-            document.getElementById('display').textContent = sealData.text;
-            document.getElementById('sealImage').src = sealData.image;
+// Correct
+            document.getElementById('display').textContent = content.text;
+            document.getElementById('sealImage').src = content.image;
         }
 
         // Update on load and storage changes
