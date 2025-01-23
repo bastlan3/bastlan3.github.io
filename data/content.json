@@ -1,0 +1,13 @@
+{
+  "currentNumber": 1,
+  "content": {
+    "1": {
+      "text": "Day 1 Content",
+      "image": "images/day1.jpg"
+    },
+    "2": {
+      "text": "Day 2 Content",
+      "image": "images/day2.jpg"
+    }
+  }
+} 
