@@ -31,14 +31,16 @@
             2: { text: "Day Two :))", image: "images/twoseal.jpeg" },
             3: { text: "Day Three:)))", image: "images/threeseal.jpeg" },
             4: { text: "chaos day :/", image: "images/kaos.jpeg" }
-            
         };
 
         function updateDisplay() {
-            const currentNumber = localStorage.getItem('currentSealNumber') || 1;
-            const content = sealData[currentNumber] || sealData[1];
+            // Convert to number using parseInt()
+            const currentNumber = parseInt(localStorage.getItem('currentSealNumber')) || 0;
             
-// Correct
+            // Get content from sealData, fallback to 0
+            const content = sealData[currentNumber] || sealData[0];
+            
+            // Fixed: Use content.text and content.image instead of sealData.text/image
             document.getElementById('display').textContent = content.text;
             document.getElementById('sealImage').src = content.image;
         }
