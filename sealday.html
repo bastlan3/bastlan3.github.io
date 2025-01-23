@@ -26,7 +26,6 @@
     <script>
         // Simple content mapping
         const sealData = {
-            
             0: { text: "no seal :(((", image: "images/cry.jpg" },
             1: { text: "Day One", image: "images/oneseal.jpg" },
             2: { text: "Day Two", image: "images/twoseal.jpg" },
@@ -39,8 +38,8 @@
             const currentNumber = localStorage.getItem('currentSealNumber') || 1;
             const content = sealData[currentNumber] || sealData[1];
             
-            document.getElementById('display').textContent = content.text;
-            document.getElementById('sealImage').src = content.image;
+            document.getElementById('display').textContent = sealData.text;
+            document.getElementById('sealImage').src = sealData.image;
         }
 
         // Update on load and storage changes
