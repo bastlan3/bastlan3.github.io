@@ -2,6 +2,8 @@
 <html>
 <head>
     <title>Set Seal Number</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -29,22 +31,36 @@
     <button onclick="setSealNumber()">Update</button>
 
     <script>
-        <script>
-    function setSealNumber() {
-        // Convert input value to a number using parseInt()
-        const number = parseInt(document.getElementById('numberInput').value);
-        
-        if (number < 1) {
-            localStorage.setItem('currentSealNumber', 0);
-        } else if (number > 4) {
-            localStorage.setItem('currentSealNumber', 4);
-        } else {
-            // Store as number (not string)
-            localStorage.setItem('currentSealNumber', number);
+        // Firebase configuration (replace with your own config)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        function setSealNumber() {
+            // Convert input value to a number using parseInt()
+            const number = parseInt(document.getElementById('numberInput').value);
+            
+            // Validate and set the number in Firebase
+            if (number < 1) {
+                database.ref('currentSealNumber').set(0);
+            } else if (number > 4) {
+                database.ref('currentSealNumber').set(4);
+            } else {
+                database.ref('currentSealNumber').set(number);
+            }
+            
+            alert('Number updated!');
         }
-        alert('Number updated!');
-    }
-</script>
     </script>
 </body>
 </html>
