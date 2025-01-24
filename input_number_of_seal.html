@@ -1,45 +1,63 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Seal Number Display</title>
+    <title>Seal Image Uploader</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
             text-align: center;
-            margin-top: 50px;
         }
-        #display {
-            font-size: 48px;
-            margin: 20px;
-        }
-        #additionalInfo {
-            font-size: 18px;
-            margin-top: 10px;
-        }
-        #mainSealImage, .uploaded-image {
+        #preview {
             max-width: 300px;
-            margin: 20px;
+            margin: 20px auto;
+        }
+        input, select, button {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
         }
         #uploadedImages {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 10px;
+            margin-top: 20px;
+        }
+        .uploaded-image {
+            max-width: 150px;
+            max-height: 150px;
+            object-fit: cover;
         }
     </style>
 </head>
 <body>
-    <h1>Current Seal Number of the Day</h1>
-    <div id="display">Loading...</div>
-    <img id="mainSealImage" alt="Main Seal Image">
+    <h1>Seal Image Uploader</h1>
     
-    <h2>Uploaded Seal Images</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    <img id="preview" src="" alt="Image preview" style="display:none;">
+    
+    <select id="sealNumber">
+        <option value="0">No Seal</option>
+        <option value="1">One Seal</option>
+        <option value="2">Two Seals</option>
+        <option value="3">Three Seals</option>
+        <option value="4">Chaos Seal</option>
+    </select>
+    
+    <input type="text" id="imageDescription" placeholder="Describe the image (optional)">
+    
+    <button onclick="uploadImage()">Upload Image</button>
+    
     <div id="uploadedImages"></div>
 
     <script>
-        // Firebase configuration (replace with your own config)
+        // Firebase configuration (replace with your own)
        const firebaseConfig = {
 
   apiKey: "AIzaSyCeevx3F38lmkPUBU-tqcNG44O3jbvkoGo",
@@ -63,44 +81,64 @@
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
+        const storage = firebase.storage();
         const database = firebase.database();
 
-        // Predefined seal texts
-        const sealTexts = {
-            0: "no seal :(((", 
-            1: "Day One :)", 
-            2: "Day Two :))", 
-            3: "Day Three:)))", 
-            4: "chaos day :/"
-        };
+        // Image preview
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('preview');
+                    preview.src = event.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
 
-        // Update main seal number and image
-        function updateMainSeal(snapshot) {
-            const sealData = snapshot.val();
-            if (!sealData) return;
+        function uploadImage() {
+            const imageInput = document.getElementById('imageInput');
+            const sealNumber = document.getElementById('sealNumber').value;
+            const imageDescription = document.getElementById('imageDescription').value;
 
-            const currentNumber = sealData.currentSealNumber || 0;
-            
-            // Update display text
-            document.getElementById('display').textContent = sealTexts[currentNumber] || sealTexts[0];
-            
-            // Predefined default images (you can replace these with your preferred default images)
-            const defaultImages = {
-                0: "https://placehold.co/300x300?text=No+Seal",
-                1: "https://placehold.co/300x300?text=One+Seal",
-                2: "https://placehold.co/300x300?text=Two+Seals",
-                3: "https://placehold.co/300x300?text=Three+Seals",
-                4: "https://placehold.co/300x300?text=Chaos+Seal"
-            };
+            // Check if an image is selected
+            if (imageInput.files.length === 0) {
+                alert('Please select an image');
+                return;
+            }
 
-            // Set main seal image
-            document.getElementById('mainSealImage').src = defaultImages[currentNumber] || defaultImages[0];
+            const file = imageInput.files[0];
+            const storageRef = storage.ref('seal-images/' + Date.now() + '_' + file.name);
+
+            // Upload image to Firebase Storage
+            storageRef.put(file).then((snapshot) => {
+                // Get download URL after upload
+                return snapshot.ref.getDownloadURL();
+            }).then((downloadURL) => {
+                // Save image metadata to Realtime Database
+                const newImageRef = database.ref('sealImages').push();
+                newImageRef.set({
+                    sealNumber: sealNumber,
+                    imageUrl: downloadURL,
+                    description: imageDescription,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                // Clear input fields
+                imageInput.value = '';
+                document.getElementById('preview').style.display = 'none';
+                document.getElementById('imageDescription').value = '';
+
+                alert('Image uploaded successfully!');
+            }).catch((error) => {
+                console.error('Upload failed', error);
+                alert('Upload failed: ' + error.message);
+            });
         }
 
-        // Listen for changes in the main seal data
-        database.ref('sealData').on('value', updateMainSeal);
-
-        // Fetch and display uploaded images
+        // Fetch and display previously uploaded images
         database.ref('sealImages').on('value', (snapshot) => {
             const uploadedImagesDiv = document.getElementById('uploadedImages');
             uploadedImagesDiv.innerHTML = ''; // Clear existing images
