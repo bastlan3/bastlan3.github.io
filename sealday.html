@@ -2,6 +2,8 @@
 <html>
 <head>
     <title>Seal Number Display</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -24,6 +26,32 @@
     <img id="sealImage" alt="Seal Image">
 
     <script>
+        // Firebase configuration (replace with your own config)
+        const firebaseConfig = {
+
+  apiKey: "AIzaSyCeevx3F38lmkPUBU-tqcNG44O3jbvkoGo",
+
+  authDomain: "sealday-37c48.firebaseapp.com",
+
+  databaseURL: "https://sealday-37c48-default-rtdb.firebaseio.com",
+
+  projectId: "sealday-37c48",
+
+  storageBucket: "sealday-37c48.firebasestorage.app",
+
+  messagingSenderId: "662454805975",
+
+  appId: "1:662454805975:web:65b7f55d1364f9e7f09792",
+
+  measurementId: "G-4506BQFMW8"
+
+};
+
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         // Simple content mapping
         const sealData = {
             0: { text: "no seal :(((", image: "images/cry.jpeg" },
@@ -33,21 +61,20 @@
             4: { text: "chaos day :/", image: "images/kaos.jpeg" }
         };
 
-        function updateDisplay() {
-            // Convert to number using parseInt()
-            const currentNumber = parseInt(localStorage.getItem('currentSealNumber')) || 0;
+        function updateDisplay(snapshot) {
+            // Get the current seal number from Firebase
+            const currentNumber = snapshot.val() || 0;
             
             // Get content from sealData, fallback to 0
             const content = sealData[currentNumber] || sealData[0];
             
-            // Fixed: Use content.text and content.image instead of sealData.text/image
+            // Update display
             document.getElementById('display').textContent = content.text;
             document.getElementById('sealImage').src = content.image;
         }
 
-        // Update on load and storage changes
-        updateDisplay();
-        window.addEventListener('storage', updateDisplay);
+        // Listen for changes in the seal number
+        database.ref('currentSealNumber').on('value', updateDisplay);
     </script>
 </body>
 </html>
