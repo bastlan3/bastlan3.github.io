@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Set Seal Number</title>
+    <title>Seal Number Display</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
@@ -10,29 +10,37 @@
             text-align: center;
             margin-top: 50px;
         }
-        input {
-            padding: 10px;
-            font-size: 16px;
-            margin: 10px;
-            width: 200px;
+        #display {
+            font-size: 48px;
+            margin: 20px;
         }
-        button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
+        #additionalInfo {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        #mainSealImage, .uploaded-image {
+            max-width: 300px;
+            margin: 20px;
+        }
+        #uploadedImages {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>Set Seal Number of the Day</h1>
-    <input type="number" id="numberInput">
-    <button onclick="setSealNumber()">Update</button>
+    <h1>Current Seal Number of the Day</h1>
+    <div id="display">Loading...</div>
+    <img id="mainSealImage" alt="Main Seal Image">
+    
+    <h2>Uploaded Seal Images</h2>
+    <div id="uploadedImages"></div>
 
     <script>
         // Firebase configuration (replace with your own config)
-        const firebaseConfig = {
+       const firebaseConfig = {
 
   apiKey: "AIzaSyCeevx3F38lmkPUBU-tqcNG44O3jbvkoGo",
 
@@ -57,21 +65,55 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        function setSealNumber() {
-            // Convert input value to a number using parseInt()
-            const number = parseInt(document.getElementById('numberInput').value);
+        // Predefined seal texts
+        const sealTexts = {
+            0: "no seal :(((", 
+            1: "Day One :)", 
+            2: "Day Two :))", 
+            3: "Day Three:)))", 
+            4: "chaos day :/"
+        };
+
+        // Update main seal number and image
+        function updateMainSeal(snapshot) {
+            const sealData = snapshot.val();
+            if (!sealData) return;
+
+            const currentNumber = sealData.currentSealNumber || 0;
             
-            // Validate and set the number in Firebase
-            if (number < 1) {
-                database.ref('currentSealNumber').set(0);
-            } else if (number > 4) {
-                database.ref('currentSealNumber').set(4);
-            } else {
-                database.ref('currentSealNumber').set(number);
-            }
+            // Update display text
+            document.getElementById('display').textContent = sealTexts[currentNumber] || sealTexts[0];
             
-            alert('Number updated!');
+            // Predefined default images (you can replace these with your preferred default images)
+            const defaultImages = {
+                0: "https://placehold.co/300x300?text=No+Seal",
+                1: "https://placehold.co/300x300?text=One+Seal",
+                2: "https://placehold.co/300x300?text=Two+Seals",
+                3: "https://placehold.co/300x300?text=Three+Seals",
+                4: "https://placehold.co/300x300?text=Chaos+Seal"
+            };
+
+            // Set main seal image
+            document.getElementById('mainSealImage').src = defaultImages[currentNumber] || defaultImages[0];
         }
+
+        // Listen for changes in the main seal data
+        database.ref('sealData').on('value', updateMainSeal);
+
+        // Fetch and display uploaded images
+        database.ref('sealImages').on('value', (snapshot) => {
+            const uploadedImagesDiv = document.getElementById('uploadedImages');
+            uploadedImagesDiv.innerHTML = ''; // Clear existing images
+
+            snapshot.forEach((childSnapshot) => {
+                const imageData = childSnapshot.val();
+                const imgElement = document.createElement('img');
+                imgElement.src = imageData.imageUrl;
+                imgElement.classList.add('uploaded-image');
+                imgElement.title = `Seal Number: ${imageData.sealNumber}\n${imageData.description || ''}`;
+                uploadedImagesDiv.appendChild(imgElement);
+            });
+        });
     </script>
 </body>
 </html>
