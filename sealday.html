@@ -2,25 +2,53 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Display Image</title>
+    <title>Generated Image</title>
     <style>
-      body { font-family: Arial, sans-serif; margin: 20px; }
-      img { max-width: 100%; height: auto; display: block; margin: 20px 0; }
+      body { 
+        font-family: Arial, sans-serif; 
+        margin: 20px; 
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      img { 
+        max-width: 100%; 
+        height: auto; 
+        display: block; 
+        margin: 20px 0; 
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+      .loading {
+        text-align: center;
+        padding: 20px;
+        font-style: italic;
+        color: #666;
+      }
+      .error {
+        color: #d9534f;
+        padding: 10px;
+        border-left: 4px solid #d9534f;
+        background-color: #f9f2f2;
+        margin: 10px 0;
+      }
     </style>
   </head>
   <body>
-    <h1>Image Display</h1>
+    <h1>Generated Image</h1>
     <div id="content">
-      <p>Loading...</p>
+      <p>Waiting for a number to be submitted...</p>
     </div>
 
     <!-- Firebase App (the core Firebase SDK) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <!-- Firebase Realtime Database -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <!-- Firebase Functions -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
     
     <script>
-      // TODO: Replace the following configuration with your Firebase project settings.
+      // TODO: Replace with your Firebase project configuration.
       var firebaseConfig = {
 
           apiKey: "AIzaSyCeevx3F38lmkPUBU-tqcNG44O3jbvkoGo",
@@ -40,42 +68,118 @@
           measurementId: "G-4506BQFMW8"
 
         };
-
       
-      // Initialize Firebase
       firebase.initializeApp(firebaseConfig);
       var database = firebase.database();
-      
-      // Mapping from number values to image URLs.
-      // You can customize these URLs as needed.
-      var imageMapping = {
-        "1": "https://picsum.photos/id/237/400/300",
-        "2": "https://picsum.photos/id/238/400/300",
-        "3": "https://picsum.photos/id/239/400/300",
-        "4": "https://picsum.photos/id/240/400/300",
-        "5": "https://picsum.photos/id/241/400/300"
-      };
-      
+      var functions = firebase.functions();
       var numberRef = database.ref('lastNumber');
-      
-      // Listen for any changes to the stored number
+
+      // Mapping numbers to specific prompts for image generation.
+      var promptMapping = {
+        "1": "A serene seaside landscape at sunrise with mist and one single seal",
+        "2": "A futuristic city at night with neon lights and exactly two seals",
+        "3": "A beautiful tropical beach with clear turquoise water and palm trees and 3 seals drinking pina colada",
+        "4": "multiple seals having chaotic activities",
+        "5": "multiple seals having very chaotic activities",
+        "6": "multiple seals having very very chaotic activities",
+        "7": "multiple seals having very very very chaotic activities",
+        "8": "multiple seals having very very very very chaotic activities",
+        "9": "multiple seals having very very very very very chaotic activities",
+        "10": "multiple seals having very very very very very very chaotic activities"
+      };
+
+      // Function to call our Firebase function
+      function callMistralAPI(prompt) {
+        var generateImage = functions.httpsCallable('generateMistralImage');
+        
+        return generateImage({ prompt: prompt })
+          .then(result => {
+            return result.data;
+          });
+      }
+
+      // Listen for changes in the stored number.
       numberRef.on('value', function(snapshot) {
         var num = snapshot.val();
         var contentDiv = document.getElementById('content');
-        
+
         if (num === null) {
           contentDiv.innerHTML = "<p>No number has been saved yet.</p>";
           return;
         }
-        
+
         var numStr = num.toString();
-        var imgUrl = imageMapping[numStr];
-        
-        if (imgUrl) {
-          contentDiv.innerHTML = '<img src="' + imgUrl + '" alt="Image for number ' + numStr + '">';
-        } else {
-          contentDiv.innerHTML = '<p>No image mapping found for number ' + numStr + '.</p>';
+        var prompt = promptMapping[numStr];
+
+        if (!prompt) {
+          contentDiv.innerHTML = "<p>No prompt mapping found for number " + numStr + ". Please enter a number between 1 and 10.</p>";
+          return;
         }
+
+        contentDiv.innerHTML = "<div class='loading'>Generating image for prompt: \"" + prompt + "\"<br>Please wait, this may take up to 30 seconds...</div>";
+
+        callMistralAPI(prompt)
+          .then(data => {
+            try {
+              // Process the response from Mistral API
+              // The exact format depends on Mistral's API response structure
+              console.log("API response:", data);
+              
+              // For Mistral's image generation API, the response might contain
+              // either a direct URL or a base64 encoded image
+              if (data.choices && data.choices[0] && data.choices[0].message) {
+                const content = data.choices[0].message.content;
+                
+                // Check if content contains an image URL
+                if (typeof content === 'string' && (content.startsWith('http') || content.includes('image_url'))) {
+                  // If it's a URL or contains an image URL
+                  let imageUrl = content;
+                  
+                  // If it's JSON string containing an image_url
+                  if (content.includes('image_url')) {
+                    try {
+                      const contentObj = JSON.parse(content);
+                      imageUrl = contentObj.image_url;
+                    } catch (e) {
+                      // If parsing fails, try to extract URL with regex
+                      const urlMatch = content.match(/(https?:\/\/[^\s"]+)/);
+                      if (urlMatch) imageUrl = urlMatch[0];
+                    }
+                  }
+                  
+                  contentDiv.innerHTML = '<img src="' + imageUrl + '" alt="Generated image for prompt: ' + prompt + '">';
+                } 
+                // Check if it's a base64 encoded image
+                else if (typeof content === 'string' && content.includes('base64')) {
+                  const base64Match = content.match(/data:image\/[^;]+;base64,([^"]+)/);
+                  if (base64Match) {
+                    contentDiv.innerHTML = '<img src="' + base64Match[0] + '" alt="Generated image for prompt: ' + prompt + '">';
+                  } else {
+                    contentDiv.innerHTML = "<div class='error'>Could not extract image data from response.</div>";
+                  }
+                }
+                // If the content is an array (Mistral sometimes returns content as array)
+                else if (Array.isArray(content)) {
+                  // Look for an image object in the array
+                  const imageContent = content.find(item => item.type === 'image');
+                  if (imageContent && imageContent.image_url) {
+                    contentDiv.innerHTML = '<img src="' + imageContent.image_url + '" alt="Generated image for prompt: ' + prompt + '">';
+                  } else {
+                    contentDiv.innerHTML = "<div class='error'>No image found in the response content.</div>";
+                  }
+                } else {
+                  contentDiv.innerHTML = "<div class='error'>Unexpected response format from image generation API.</div>";
+                }
+              } else {
+                contentDiv.innerHTML = "<div class='error'>Invalid response from image generation API.</div>";
+              }
+            } catch (error) {
+              contentDiv.innerHTML = "<div class='error'>Error processing image data: " + error.message + "</div>";
+            }
+          })
+          .catch(error => {
+            contentDiv.innerHTML = "<div class='error'>Error generating image: " + error.message + "</div>";
+          });
       });
     </script>
   </body>
