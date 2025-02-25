@@ -1,157 +1,66 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Seal Image Uploader</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+  <head>
+    <meta charset="UTF-8">
+    <title>Enter a Number</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            text-align: center;
-        }
-        #preview {
-            max-width: 300px;
-            margin: 20px auto;
-        }
-        input, select, button {
-            margin: 10px 0;
-            padding: 10px;
-            width: 100%;
-        }
-        #uploadedImages {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        .uploaded-image {
-            max-width: 150px;
-            max-height: 150px;
-            object-fit: cover;
-        }
+      body { font-family: Arial, sans-serif; margin: 20px; }
+      input, button { font-size: 1rem; padding: 8px; margin: 5px 0; }
     </style>
-</head>
-<body>
-    <h1>Seal Image Uploader</h1>
-    
-    <input type="file" id="imageInput" accept="image/*">
-    <img id="preview" src="" alt="Image preview" style="display:none;">
-    
-    <select id="sealNumber">
-        <option value="0">No Seal</option>
-        <option value="1">One Seal</option>
-        <option value="2">Two Seals</option>
-        <option value="3">Three Seals</option>
-        <option value="4">Chaos Seal</option>
-    </select>
-    
-    <input type="text" id="imageDescription" placeholder="Describe the image (optional)">
-    
-    <button onclick="uploadImage()">Upload Image</button>
-    
-    <div id="uploadedImages"></div>
+  </head>
+  <body>
+    <h1>Enter a Number</h1>
+    <form id="numberForm">
+      <input type="number" id="numberInput" required />
+      <button type="submit">Submit</button>
+    </form>
+    <p id="status"></p>
 
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <!-- Firebase Realtime Database -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
     <script>
-        // Firebase configuration (replace with your own)
-       const firebaseConfig = {
+      // TODO: Replace with your Firebase project configuration.
+      var firebaseConfig = {
 
-  apiKey: "AIzaSyCeevx3F38lmkPUBU-tqcNG44O3jbvkoGo",
+          apiKey: "AIzaSyCeevx3F38lmkPUBU-tqcNG44O3jbvkoGo",
 
-  authDomain: "sealday-37c48.firebaseapp.com",
+          authDomain: "sealday-37c48.firebaseapp.com",
 
-  databaseURL: "https://sealday-37c48-default-rtdb.firebaseio.com",
+          databaseURL: "https://sealday-37c48-default-rtdb.firebaseio.com",
 
-  projectId: "sealday-37c48",
+          projectId: "sealday-37c48",
 
-  storageBucket: "sealday-37c48.firebasestorage.app",
+          storageBucket: "sealday-37c48.firebasestorage.app",
 
-  messagingSenderId: "662454805975",
+          messagingSenderId: "662454805975",
 
-  appId: "1:662454805975:web:65b7f55d1364f9e7f09792",
+          appId: "1:662454805975:web:65b7f55d1364f9e7f09792",
 
-  measurementId: "G-4506BQFMW8"
+          measurementId: "G-4506BQFMW8"
 
 };
 
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const storage = firebase.storage();
-        const database = firebase.database();
-
-        // Image preview
-        document.getElementById('imageInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const preview = document.getElementById('preview');
-                    preview.src = event.target.result;
-                    preview.style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            }
+      
+      firebase.initializeApp(firebaseConfig);
+      var database = firebase.database();
+      var numberRef = database.ref('lastNumber');
+      
+      document.getElementById('numberForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var num = document.getElementById('numberInput').value;
+        // Save the number to the database
+        numberRef.set(num, function(error) {
+          if (error) {
+            document.getElementById('status').innerText = 'Error: ' + error;
+          } else {
+            document.getElementById('status').innerText = 'Number saved successfully!';
+            document.getElementById('numberInput').value = '';
+          }
         });
-
-        function uploadImage() {
-            const imageInput = document.getElementById('imageInput');
-            const sealNumber = document.getElementById('sealNumber').value;
-            const imageDescription = document.getElementById('imageDescription').value;
-
-            // Check if an image is selected
-            if (imageInput.files.length === 0) {
-                alert('Please select an image');
-                return;
-            }
-
-            const file = imageInput.files[0];
-            const storageRef = storage.ref('seal-images/' + Date.now() + '_' + file.name);
-
-            // Upload image to Firebase Storage
-            storageRef.put(file).then((snapshot) => {
-                // Get download URL after upload
-                return snapshot.ref.getDownloadURL();
-            }).then((downloadURL) => {
-                // Save image metadata to Realtime Database
-                const newImageRef = database.ref('sealImages').push();
-                newImageRef.set({
-                    sealNumber: sealNumber,
-                    imageUrl: downloadURL,
-                    description: imageDescription,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
-                });
-
-                // Clear input fields
-                imageInput.value = '';
-                document.getElementById('preview').style.display = 'none';
-                document.getElementById('imageDescription').value = '';
-
-                alert('Image uploaded successfully!');
-            }).catch((error) => {
-                console.error('Upload failed', error);
-                alert('Upload failed: ' + error.message);
-            });
-        }
-
-        // Fetch and display previously uploaded images
-        database.ref('sealImages').on('value', (snapshot) => {
-            const uploadedImagesDiv = document.getElementById('uploadedImages');
-            uploadedImagesDiv.innerHTML = ''; // Clear existing images
-
-            snapshot.forEach((childSnapshot) => {
-                const imageData = childSnapshot.val();
-                const imgElement = document.createElement('img');
-                imgElement.src = imageData.imageUrl;
-                imgElement.classList.add('uploaded-image');
-                imgElement.title = `Seal Number: ${imageData.sealNumber}\n${imageData.description || ''}`;
-                uploadedImagesDiv.appendChild(imgElement);
-            });
-        });
+      });
     </script>
-</body>
+  </body>
 </html>
