@@ -1,130 +1,82 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Seal Number Display</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <head>
+    <meta charset="UTF-8">
+    <title>Display Image</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
-        }
-        #display {
-            font-size: 48px;
-            margin: 20px;
-        }
-        #additionalInfo {
-            font-size: 18px;
-            margin-top: 10px;
-        }
-        img {
-            max-width: 300px;
-            margin: 20px;
-        }
+      body { font-family: Arial, sans-serif; margin: 20px; }
+      img { max-width: 100%; height: auto; display: block; margin: 20px 0; }
     </style>
-</head>
-<body>
-    <h1>Current Seal Number of the Day</h1>
-    <div id="display">Loading...</div>
-    <div id="additionalInfo"></div>
-    <img id="sealImage" alt="Seal Image">
-    <img id="defaultSealImage" alt="Default Seal Image" style="display: none;">
+  </head>
+  <body>
+    <h1>Image Display</h1>
+    <div id="content">
+      <p>Loading...</p>
+    </div>
 
-    <input type="number" id="sealNumberInput" min="0" max="4" placeholder="Enter Seal Number (0-4)">
-    <button onclick="updateSealNumber()">Update Seal Number</button>
-
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <!-- Firebase Realtime Database -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
     <script>
-        // Firebase configuration (replace with your own config)
-        const firebaseConfig = {
+      // TODO: Replace the following configuration with your Firebase project settings.
+      var firebaseConfig = {
 
-  apiKey: "AIzaSyCeevx3F38lmkPUBU-tqcNG44O3jbvkoGo",
+          apiKey: "AIzaSyCeevx3F38lmkPUBU-tqcNG44O3jbvkoGo",
+        
+          authDomain: "sealday-37c48.firebaseapp.com",
+        
+          databaseURL: "https://sealday-37c48-default-rtdb.firebaseio.com",
+        
+          projectId: "sealday-37c48",
+        
+          storageBucket: "sealday-37c48.firebasestorage.app",
+        
+          messagingSenderId: "662454805975",
+        
+          appId: "1:662454805975:web:65b7f55d1364f9e7f09792",
+        
+          measurementId: "G-4506BQFMW8"
 
-  authDomain: "sealday-37c48.firebaseapp.com",
-
-  databaseURL: "https://sealday-37c48-default-rtdb.firebaseio.com",
-
-  projectId: "sealday-37c48",
-
-  storageBucket: "sealday-37c48.firebasestorage.app",
-
-  messagingSenderId: "662454805975",
-
-  appId: "1:662454805975:web:65b7f55d1364f9e7f09792",
-
-  measurementId: "G-4506BQFMW8"
-
-};
-
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        // Simple content mapping
-        const sealData = {
-            0: { 
-                text: "no seal :(((", 
-                image: "images/cry.jpeg",
-                defaultImage: "https://github.com/your-username/your-repo/raw/main/images/cry.jpeg"
-            },
-            1: { 
-                text: "Day One :)", 
-                image: "images/oneseal.jpeg", 
-                defaultImage: "https://github.com/your-username/your-repo/raw/main/images/oneseal.jpeg"
-            },
-            2: { 
-                text: "Day Two :))", 
-                image: "images/twoseal.jpeg",
-                defaultImage: "https://github.com/your-username/your-repo/raw/main/images/twoseal.jpeg"
-            },
-            3: { 
-                text: "Day Three:)))", 
-                image: "images/threeseal.jpeg",
-                defaultImage: "https://github.com/your-username/your-repo/raw/main/images/threeseal.jpeg"
-            },
-            4: { 
-                text: "chaos day :/", 
-                image: "images/kaos.jpeg",
-                defaultImage: "https://github.com/your-username/your-repo/raw/main/images/kaos.jpeg"
-            }
         };
 
-        function updateDisplay(snapshot) {
-            const sealDataFromFirebase = snapshot.val();
-            if (!sealDataFromFirebase) return;
-
-            const currentNumber = sealDataFromFirebase.currentSealNumber || 0;
-            
-            // Update display
-            document.getElementById('display').textContent = sealData[currentNumber].text;
-            document.getElementById('sealImage').src = sealData[currentNumber].image;
-            document.getElementById('defaultSealImage').src = sealData[currentNumber].defaultImage || sealData[0].defaultImage;
-            document.getElementById('defaultSealImage').style.display = 'inline';
+      
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      var database = firebase.database();
+      
+      // Mapping from number values to image URLs.
+      // You can customize these URLs as needed.
+      var imageMapping = {
+        "1": "https://picsum.photos/id/237/400/300",
+        "2": "https://picsum.photos/id/238/400/300",
+        "3": "https://picsum.photos/id/239/400/300",
+        "4": "https://picsum.photos/id/240/400/300",
+        "5": "https://picsum.photos/id/241/400/300"
+      };
+      
+      var numberRef = database.ref('lastNumber');
+      
+      // Listen for any changes to the stored number
+      numberRef.on('value', function(snapshot) {
+        var num = snapshot.val();
+        var contentDiv = document.getElementById('content');
+        
+        if (num === null) {
+          contentDiv.innerHTML = "<p>No number has been saved yet.</p>";
+          return;
         }
-
-        function updateSealNumber() {
-            const sealNumberInput = document.getElementById('sealNumberInput');
-            const newSealNumber = parseInt(sealNumberInput.value);
-
-            if (isNaN(newSealNumber) || newSealNumber < 0 || newSealNumber > 4) {
-                alert('Please enter a valid seal number (0-4)');
-                return;
-            }
-
-            database.ref('sealData/currentSealNumber').set(newSealNumber)
-                .then(() => {
-                    alert('Seal number updated!');
-                    sealNumberInput.value = '';
-                })
-                .catch((error) => {
-                    console.error('Error updating seal number:', error);
-                    alert('Failed to update seal number. Please try again.');
-                });
+        
+        var numStr = num.toString();
+        var imgUrl = imageMapping[numStr];
+        
+        if (imgUrl) {
+          contentDiv.innerHTML = '<img src="' + imgUrl + '" alt="Image for number ' + numStr + '">';
+        } else {
+          contentDiv.innerHTML = '<p>No image mapping found for number ' + numStr + '.</p>';
         }
-
-        // Listen for changes in the seal data
-        database.ref('sealData').on('value', updateDisplay);
+      });
     </script>
-</body>
+  </body>
 </html>
