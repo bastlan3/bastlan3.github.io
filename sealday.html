@@ -1,48 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Display Generated Image</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; text-align: center; }
-    img { max-width: 100%; height: auto; margin-top: 20px; }
-    .status { font-size: 1.2rem; margin-top: 20px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Generated Image</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Generated Image</h1>
-  <div id="imageContainer">
-    <p class="status">Waiting for a generated image...</p>
-  </div>
-
-  <!-- Firebase App -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <!-- Firebase Realtime Database -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-  <script>
-    // TODO: Replace with your Firebase project configuration.
-    var firebaseConfig = {
-      apiKey: "YOUR_FIREBASE_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-    firebase.initializeApp(firebaseConfig);
-    var db = firebase.database();
-
-    // Listen for changes on the "lastImageUrl" node.
-    db.ref("lastImageUrl").on("value", function(snapshot) {
-      var imageUrl = snapshot.val();
-      var container = document.getElementById("imageContainer");
-      if (imageUrl) {
-        container.innerHTML = '<img src="' + imageUrl + '" alt="Generated Image">';
-      } else {
-        container.innerHTML = '<p class="status">No image generated yet.</p>';
-      }
-    });
-  </script>
+    <div class="container">
+        <h1>Your Generated Image</h1>
+        <div id="imageContainer">
+            <img id="generatedImage" src="" alt="Generated image will appear here">
+        </div>
+        <div id="loading" class="spinner visible"></div>
+        <div class="buttons">
+            <a href="index.html" class="button">Generate Another Image</a>
+        </div>
+    </div>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <script src="view.js"></script>
 </body>
 </html>
