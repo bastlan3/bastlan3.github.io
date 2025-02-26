@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             // Call the Firebase function
             const generateImage = functions.httpsCallable('generateImage');
-            const result = await generateImage({ sealNumber: sealNumber });
+            const result = await generateImage({ sealNumber: parseInt(sealNumber) });
             
             // Get the image path from the result
             const imagePath = result.data.imagePath;
