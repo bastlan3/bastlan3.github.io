@@ -1,52 +1,28 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Submit a Number</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    input, button { padding: 8px; font-size: 1rem; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seal Number Input</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Submit a Number</h1>
-  <form id="numberForm">
-    <input type="number" id="numberInput" min="1" max="10" required>
-    <button type="submit">Submit</button>
-  </form>
-  <p id="status"></p>
-
-  <!-- Firebase App -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <!-- Firebase Realtime Database -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-  <script>
-    // TODO: Replace with your Firebase project configuration.
-    var firebaseConfig = {
-      apiKey: "YOUR_FIREBASE_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-    firebase.initializeApp(firebaseConfig);
-    var db = firebase.database();
-
-    document.getElementById("numberForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      var number = document.getElementById("numberInput").value;
-      // Write the submitted number to "lastNumber"
-      db.ref("lastNumber").set(number, function(error) {
-        var status = document.getElementById("status");
-        if (error) {
-          status.textContent = "Error saving number: " + error;
-        } else {
-          status.textContent = "Number submitted successfully!";
-        }
-      });
-    });
-  </script>
+    <div class="container">
+        <h1>Enter Seal Number</h1>
+        <form id="sealForm">
+            <input type="number" id="sealNumber" required placeholder="Enter a number">
+            <button type="submit">Generate Image</button>
+        </form>
+        <div id="loading" class="hidden">
+            <p>Generating your image... This may take a moment.</p>
+            <div class="spinner"></div>
+        </div>
+    </div>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
