@@ -90,13 +90,21 @@
 
       // Function to call our Firebase function
       function callMistralAPI(prompt) {
-        var generateImage = functions.httpsCallable('generateMistralImage');
-        
-        return generateImage({ prompt: prompt })
-          .then(result => {
-            return result.data;
+          return fetch("https://us-central1-sealday-37c48.cloudfunctions.net/generateMistralImageHttp", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ prompt: prompt })
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
           });
-      }
+        }
+
 
       // Listen for changes in the stored number.
       numberRef.on('value', function(snapshot) {
@@ -117,7 +125,7 @@
         }
 
         contentDiv.innerHTML = "<div class='loading'>Generating image for prompt: \"" + prompt + "\"<br>Please wait, this may take up to 30 seconds...</div>";
-
+        
         callMistralAPI(prompt)
           .then(data => {
             try {
