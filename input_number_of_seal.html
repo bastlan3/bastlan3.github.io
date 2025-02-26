@@ -1,66 +1,52 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Enter a Number</title>
-    <style>
-      body { font-family: Arial, sans-serif; margin: 20px; }
-      input, button { font-size: 1rem; padding: 8px; margin: 5px 0; }
-    </style>
-  </head>
-  <body>
-    <h1>Enter a Number</h1>
-    <form id="numberForm">
-      <input type="number" id="numberInput" required />
-      <button type="submit">Submit</button>
-    </form>
-    <p id="status"></p>
+<head>
+  <meta charset="UTF-8">
+  <title>Submit a Number</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input, button { padding: 8px; font-size: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Submit a Number</h1>
+  <form id="numberForm">
+    <input type="number" id="numberInput" min="1" max="10" required>
+    <button type="submit">Submit</button>
+  </form>
+  <p id="status"></p>
 
-    <!-- Firebase App (the core Firebase SDK) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <!-- Firebase Realtime Database -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    
-    <script>
-      // TODO: Replace with your Firebase project configuration.
-      var firebaseConfig = {
+  <!-- Firebase App -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <!-- Firebase Realtime Database -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script>
+    // TODO: Replace with your Firebase project configuration.
+    var firebaseConfig = {
+      apiKey: "YOUR_FIREBASE_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.database();
 
-          apiKey: "AIzaSyCeevx3F38lmkPUBU-tqcNG44O3jbvkoGo",
-
-          authDomain: "sealday-37c48.firebaseapp.com",
-
-          databaseURL: "https://sealday-37c48-default-rtdb.firebaseio.com",
-
-          projectId: "sealday-37c48",
-
-          storageBucket: "sealday-37c48.firebasestorage.app",
-
-          messagingSenderId: "662454805975",
-
-          appId: "1:662454805975:web:65b7f55d1364f9e7f09792",
-
-          measurementId: "G-4506BQFMW8"
-
-};
-
-      
-      firebase.initializeApp(firebaseConfig);
-      var database = firebase.database();
-      var numberRef = database.ref('lastNumber');
-      
-      document.getElementById('numberForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        var num = document.getElementById('numberInput').value;
-        // Save the number to the database
-        numberRef.set(num, function(error) {
-          if (error) {
-            document.getElementById('status').innerText = 'Error: ' + error;
-          } else {
-            document.getElementById('status').innerText = 'Number saved successfully!';
-            document.getElementById('numberInput').value = '';
-          }
-        });
+    document.getElementById("numberForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      var number = document.getElementById("numberInput").value;
+      // Write the submitted number to "lastNumber"
+      db.ref("lastNumber").set(number, function(error) {
+        var status = document.getElementById("status");
+        if (error) {
+          status.textContent = "Error saving number: " + error;
+        } else {
+          status.textContent = "Number submitted successfully!";
+        }
       });
-    </script>
-  </body>
+    });
+  </script>
+</body>
 </html>
