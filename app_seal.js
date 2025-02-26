@@ -19,7 +19,6 @@ const firebaseConfig = {
 
 };
 
-
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
@@ -47,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             // Call the Firebase function
             const generateImage = functions.httpsCallable('generateImage');
-            const result = await generateImage({ sealNumber: parseInt(sealNumber) });
+            const result = await generateImage({ sealNumber: sealNumber });
             
             // Get the image path from the result
             const imagePath = result.data.imagePath;
@@ -56,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
             sessionStorage.setItem('imagePath', imagePath);
             
             // Redirect to the view image page
-            window.location.href = 'view-image.html';
+            window.location.href = 'sealday.html';
         } catch (error) {
             console.error('Error generating image:', error);
             alert('Error generating image: ' + error.message);
