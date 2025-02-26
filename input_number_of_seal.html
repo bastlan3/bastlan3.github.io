@@ -9,9 +9,9 @@
 <body>
     <div class="container">
         <h1>Enter Seal Number</h1>
-        <form id="sealForm">
-            <input type="number" id="sealNumber" required placeholder="Enter a number">
-            <button type="submit">Generate Image</button>
+        <form id="sealForm" onsubmit="return generateImage(event)">
+          <input type="text" id="sealNumber" name="sealNumber" required>
+          <button type="submit">Generate</button>
         </form>
         <div id="loading" class="hidden">
             <p>Generating your image... This may take a moment.</p>
