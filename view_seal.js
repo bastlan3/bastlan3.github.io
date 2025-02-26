@@ -1,8 +1,24 @@
 // Firebase configuration
 const firebaseConfig = {
-    // You'll replace this with your Firebase config
-    // We'll add these values in Step 10
+
+  apiKey: "AIzaSyCeevx3F38lmkPUBU-tqcNG44O3jbvkoGo",
+
+  authDomain: "sealday-37c48.firebaseapp.com",
+
+  databaseURL: "https://sealday-37c48-default-rtdb.firebaseio.com",
+
+  projectId: "sealday-37c48",
+
+  storageBucket: "sealday-37c48.firebasestorage.app",
+
+  messagingSenderId: "662454805975",
+
+  appId: "1:662454805975:web:65b7f55d1364f9e7f09792",
+
+  measurementId: "G-4506BQFMW8"
+
 };
+
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
