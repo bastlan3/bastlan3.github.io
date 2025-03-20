@@ -191,6 +191,32 @@
             grid-template-rows: 1fr 1fr;
             grid-gap: 15px;
         }
+        /* New layout for asymmetric plots */
+        .plots-container-asymmetric {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 15px;
+        }
+        .plots-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .tall-figure {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .tall-chart {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            overflow: hidden;
+            min-height: 400px; /* Adjust as needed to match the height of the stacked figures */
+        }
     </style>
 </head>
 <body>
@@ -316,33 +342,37 @@
                 <p>Human behavior: <span class="correlation-value">r = 0.82</span> [0.78–0.85]</p>
             </div>
             
-            <div class="plots-container-4">
-                <div class="figure">
-                    <div class="chart">
-                        <img src="figures/figure2A" alt="Correlation chart visualization across robustness levels">
+            <div class="plots-container-asymmetric">
+                <!-- Left column with stacked figures A, B, D -->
+                <div class="plots-stack">
+                    <div class="figure">
+                        <div class="chart">
+                            <img src="figures/figure2A.png" alt="Correlation chart visualization across robustness levels">
+                        </div>
+                        <p class="figure-caption">Figure 2A: Pearson correlations between model predictions and primate responses across robustness levels (ε).</p>
                     </div>
-                    <p class="figure-caption">Figure 2A: Pearson correlations between model predictions and primate responses across robustness levels (ε).</p>
+                    
+                    <div class="figure">
+                        <div class="chart">
+                            <img src="figures/figure2B.png" alt="Neural response patterns comparison">
+                        </div>
+                        <p class="figure-caption">Figure 2B: Comparison of neural response patterns between macaque IT and models at different robustness levels.</p>
+                    </div>
+                    
+                    <div class="figure">
+                        <div class="chart">
+                            <img src="figures/figure2D.png" alt="Classification performance comparison">
+                        </div>
+                        <p class="figure-caption">Figure 2D: Classification performance comparison between primates and models at varying robustness levels.</p>
+                    </div>
                 </div>
                 
-                <div class="figure">
-                    <div class="chart">
-                        <img src="figures/figure2B" alt="Neural response patterns comparison">
-                    </div>
-                    <p class="figure-caption">Figure 2B: Comparison of neural response patterns between macaque IT and models at different robustness levels.</p>
-                </div>
-                
-                <div class="figure">
-                    <div class="chart">
-                        <img src="figures/figure2C" alt="RSA analysis of model-primate similarity">
+                <!-- Right column with tall figure C -->
+                <div class="tall-figure figure">
+                    <div class="tall-chart">
+                        <img src="figures/figure2C.png" alt="RSA analysis of model-primate similarity">
                     </div>
                     <p class="figure-caption">Figure 2C: Representational Similarity Analysis (RSA) showing alignment between model layers and primate visual areas.</p>
-                </div>
-                
-                <div class="figure">
-                    <div class="chart">
-                        <img src="figures/figure2D" alt="Classification performance comparison">
-                    </div>
-                    <p class="figure-caption">Figure 2D: Classification performance comparison between primates and models at varying robustness levels.</p>
                 </div>
             </div>
             
@@ -358,7 +388,7 @@
                 <div class="frequency-col">
                     <div class="figure">
                         <div class="chart">
-                            <img src="figures/figure3A" alt="CSF model-vs-human">
+                            <img src="figures/figure3A.png" alt="CSF model-vs-human">
                         </div>
                         <p class="figure-caption">Figure 3A: Contrast sensitivity function (CSF) comparison between human perception (dotted line) and ResNet layers across robustness levels.</p>
                     </div>
@@ -374,7 +404,7 @@
                 <div class="frequency-col">
                     <div class="figure">
                         <div class="chart">
-                            <img src="figures/figure3B" alt="Power distribution in Fourier CSF">
+                            <img src="figures/figure3B.png" alt="Power distribution in Fourier CSF">
                         </div>
                         <p class="figure-caption">Figure 3B: Power distribution across frequency bands in adversarial perturbations. Robust models (ε ≥ 1) show increased power in low-frequency bands.</p>
                     </div>
