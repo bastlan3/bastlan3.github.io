@@ -21,7 +21,7 @@
                 "header header"
                 "intro intro"
                 "methods methods"
-                "results1 results2"
+                "results2 results1"
                 "frequency frequency"
                 "conclusion conclusion";
             grid-gap: 20px;
@@ -185,6 +185,12 @@
             grid-template-columns: 1fr 1fr;
             grid-gap: 15px;
         }
+        .plots-container-4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            grid-gap: 15px;
+        }
     </style>
 </head>
 <body>
@@ -263,36 +269,6 @@
             </div>
         </div>
 
-        <div class="results1 section">
-            <h2>Model-Primate Alignment</h2>
-            
-            <div class="correlation-box">
-                <p>ε = 0.1 models correlate strongly with:</p>
-                <p>Macaque IT responses: <span class="correlation-value">r = 0.83</span> [0.79–0.87]</p>
-                <p>Human behavior: <span class="correlation-value">r = 0.82</span> [0.78–0.85]</p>
-            </div>
-            
-            <div class="plots-container">
-                <div class="figure">
-                    <div class="chart">
-                        <img src="/api/placeholder/300/180" alt="Correlation chart visualization across robustness levels">
-                    </div>
-                    <p class="figure-caption">Figure 1A: Pearson correlations between model predictions and primate responses across robustness levels (ε).</p>
-                </div>
-                
-                <div class="figure">
-                    <div class="chart">
-                        <img src="/api/placeholder/300/180" alt="Neural response patterns comparison">
-                    </div>
-                    <p class="figure-caption">Figure 1B: Comparison of neural response patterns between macaque IT and models at different robustness levels.</p>
-                </div>
-            </div>
-            
-            <div class="key-point">
-                <p>Models with intermediate robustness (ε = a0.1) exhibit the strongest alignment with both human behavioral errors and macaque neural responses.</p>
-            </div>
-        </div>
-
         <div class="results2 section">
             <h2>Adversarial Attack Efficiency</h2>
             
@@ -329,6 +305,50 @@
                 <li>Moderately robust models (ε = 0.1, ε = 1): Gradual error increase with noise</li>
                 <li>Highly robust models (ε = 3, ε = 5): Strong resistance requiring substantial noise</li>
             </ul>
+        </div>
+
+        <div class="results1 section">
+            <h2>Model-Primate Alignment</h2>
+            
+            <div class="correlation-box">
+                <p>ε = 0.1 models correlate strongly with:</p>
+                <p>Macaque IT responses: <span class="correlation-value">r = 0.83</span> [0.79–0.87]</p>
+                <p>Human behavior: <span class="correlation-value">r = 0.82</span> [0.78–0.85]</p>
+            </div>
+            
+            <div class="plots-container-4">
+                <div class="figure">
+                    <div class="chart">
+                        <img src="/api/placeholder/300/180" alt="Correlation chart visualization across robustness levels">
+                    </div>
+                    <p class="figure-caption">Figure 1A: Pearson correlations between model predictions and primate responses across robustness levels (ε).</p>
+                </div>
+                
+                <div class="figure">
+                    <div class="chart">
+                        <img src="/api/placeholder/300/180" alt="Neural response patterns comparison">
+                    </div>
+                    <p class="figure-caption">Figure 1B: Comparison of neural response patterns between macaque IT and models at different robustness levels.</p>
+                </div>
+                
+                <div class="figure">
+                    <div class="chart">
+                        <img src="/api/placeholder/300/180" alt="RSA analysis of model-primate similarity">
+                    </div>
+                    <p class="figure-caption">Figure 1C: Representational Similarity Analysis (RSA) showing alignment between model layers and primate visual areas.</p>
+                </div>
+                
+                <div class="figure">
+                    <div class="chart">
+                        <img src="/api/placeholder/300/180" alt="Classification performance comparison">
+                    </div>
+                    <p class="figure-caption">Figure 1D: Classification performance comparison between primates and models at varying robustness levels.</p>
+                </div>
+            </div>
+            
+            <div class="key-point">
+                <p>Models with intermediate robustness (ε = 0.1) exhibit the strongest alignment with both human behavioral errors and macaque neural responses.</p>
+            </div>
         </div>
 
         <div class="frequency section">
