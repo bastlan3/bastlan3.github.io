@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brussels Barathon Itinerary</title>
+    
+    <!-- Leaflet.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+     
+    <!-- Leaflet.js JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+     
+    <style>
+        /* Set full height for map */
+        body, html {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            overflow: hidden; /* Hide scrollbars */
+        }
+        
+        #map {
+            height: 100%;
+            width: 100%;
+            background: #f0f0f0;
+        }
+        
+        /* Custom icon styling */
+        .custom-div-icon {
+            background: none;
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .custom-div-icon svg {
+            width: 32px;
+            height: 32px;
+            fill: #fff;
+            stroke: #000;
+            stroke-width: 1;
+            padding: 4px;
+            border-radius: 50%;
+            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5));
+        }
+
+        /* Bar icon color */
+        .bar-icon svg {
+            background-color: #d97706; /* Amber */
+        }
+        
+        /* Tourist icon color */
+        .tourist-icon svg {
+            background-color: #059669; /* Emerald */
+        }
+
+        /* Leaflet tooltip styling */
+        .leaflet-tooltip {
+            background-color: white;
+            border: 2px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            min-width: 180px; /* Prevents vertical collapse */
+            max-width: 250px;
+            word-wrap: break-word; /* Keep this for wrapping long descriptions */
+            word-break: normal;  /* Change back to normal */
+            white-space: normal;  /* Ensure text wraps normally */
+        }
+        
+        .leaflet-tooltip b {
+            font-size: 16px;
+            color: #111;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Title overlay */
+        .map-title {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+        }
+
+        /* Responsive title */
+        @media (max-width: 600px) {
+            .map-title {
+                font-size: 1.1rem;
+                padding: 8px 12px;
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Map Title -->
+    <div class="map-title">
+        Brussels Tourist & Bar Itinerary
+    </div>
+
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            // --- 1. Define Stops & Data ---
+
+            // SVG Icons (as strings)
+            const beerIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18.3 2.14a.75.75 0 0 0-.91-.39l-2.85 1.14a.75.75 0 0 0-.54.7V6H8.25A2.25 2.25 0 0 0 6 8.25v10.5A2.25 2.25 0 0 0 8.25 21h7.5A2.25 2.25 0 0 0 18 18.75V8.25h1.5A2.25 2.25 0 0 0 21.75 6V5.25a3.15 3.15 0 0 0-3.45-3.11Zm-1.5 6.11V4.71l1.5-.6v3.65h-1.5Z"/></svg>`;
+            const touristIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9a3.75 3.75 0 1 0 0 7.5A3.75 3.75 0 0 0 12 9Z" /><path fill-rule="evenodd" d="M9.344 3.071c.583-.5 1.445-.5 2.028 0l.962.875a.75.75 0 0 0 .998-.06l.513-.684a.75.75 0 0 1 1.2.9l-.513.684a.75.75 0 0 0 .44 1.25l1.117.223a.75.75 0 0 1 .5 1.28l-.67.931a.75.75 0 0 0 .11 1.043l.813.715a.75.75 0 0 1 0 1.22l-.813.715a.75.75 0 0 0-.11 1.043l.67.931a.75.75 0 0 1-.5 1.28l-1.117.223a.75.75 0 0 0-.44 1.25l.513.684a.75.75 0 0 1-1.2-.9l-.513-.684a.75.75 0 0 0-.998-.06l-.962.875c-.583.5-1.445.5-2.028 0l-.962-.875a.75.75 0 0 0-.998.06l-.513.684a.75.75 0 0 1-1.2-.9l.513.684a.75.75 0 0 0-.44-1.25l-1.117-.223a.75.75 0 0 1-.5-1.28l.67-.931a.75.75 0 0 0 .11-1.043l-.813-.715a.75.75 0 0 1 0-1.22l.813-.715a.75.75 0 0 0 .11-1.043l-.67-.931a.75.75 0 0 1 .5-1.28l1.117-.223a.75.75 0 0 0 .44-1.25l-.513-.684a.75.75 0 0 1 1.2-.9l.513.684a.75.75 0 0 0 .998.06l.962.875Z" clip-rule="evenodd" /></svg>`;
+
+            // Itinerary Stops
+            const stops = [
+                {
+                    lat: 50.8467, lng: 4.3525, type: 'tourist',
+                    title: '1. Grand-Place',
+                    description: 'The stunning central square of Brussels, a UNESCO World Heritage site, surrounded by opulent guildhalls and the Hôtel de Ville.'
+                },
+                {
+                    lat: 50.8465, lng: 4.3522, type: 'bar',
+                    title: '2. Le Roy d\'Espagne',
+                    description: 'A historic bar right on the Grand-Place with a richly decorated interior and a fantastic view of the square.'
+                },
+                {
+                    lat: 50.8481, lng: 4.3541, type: 'tourist',
+                    title: '3. Galeries Royales Saint-Hubert',
+                    description: 'Europe\'s first covered shopping arcade, built in 1847. Home to luxury shops, chocolatiers, and theaters.'
+                },
+                {
+                    lat: 50.8492, lng: 4.3538, type: 'bar',
+                    title: '4. À la Mort Subite',
+                    description: 'A beautiful, authentic Belle Époque café. Famous for its traditional Belgian beers, especially their own Gueuze "Sudden Death".'
+                },
+                {
+                    lat: 50.8450, lng: 4.3499, type: 'tourist',
+                    title: '5. Manneken-Pis',
+                    description: 'The famous (and small!) bronze statue of a peeing boy, a symbol of Brussels\' rebellious spirit. Often dressed in costumes.'
+                },
+                {
+                    lat: 50.8450, lng: 4.3497, type: 'bar',
+                    title: '6. Poechenellekelder',
+                    description: 'Directly opposite the Manneken-Pis, this unique bar is filled with puppets and old decor. It offers a huge selection of Belgian beers.'
+                },
+                {
+                    lat: 50.8488, lng: 4.3541, type: 'bar',
+                    title: '7. Delirium Café',
+                    description: 'Holds the world record for the most beers available (over 2,000!). Located in the same alley as Jeanneke-Pis. Always lively.'
+                },
+                {
+                    lat: 50.8487, lng: 4.3540, type: 'tourist',
+                    title: '8. Jeanneke-Pis',
+                    description: 'The female counterpart to the Manneken-Pis, hidden away in the Impasse de la Fidélité, right by the Delirium Café.'
+                },
+                {
+                    lat: 50.8436, lng: 4.3569, type: 'tourist',
+                    title: '9. Mont des Arts',
+                    description: 'An elevated garden complex offering one of the best panoramic views over the center of Brussels.'
+                },
+                {
+                    lat: 50.8432, lng: 4.3575, type: 'bar',
+                    title: '10. Café du MIM',
+                    description: 'The rooftop café of the Musical Instruments Museum. Offers a stunning panoramic view of the city. (Closes earlier than bars).'
+                },
+                {
+                    lat: 50.8400, lng: 4.3550, type: 'tourist',
+                    title: '11. Église Notre-Dame du Sablon',
+                    description: 'A beautiful late Gothic church in the chic Sablon district, known for its stunning stained-glass windows.'
+                },
+                {
+                    lat: 50.8384, lng: 4.3475, type: 'tourist',
+                    title: '12. Place du Jeu de Balle',
+                    description: 'The heart of the Marolles district, famous for its daily flea market. A great place to experience local life.'
+                },
+                {
+                    lat: 50.8400, lng: 4.3483, type: 'bar',
+                    title: '13. La Fleur en Papier Doré',
+                    description: 'A legendary, historic café that was a gathering place for Belgian surrealists like René Magritte. Full of art and history.'
+                },
+                {
+                    lat: 50.8382, lng: 4.3516, type: 'tourist',
+                    title: '14. Palais de Justice',
+                    description: 'One of the largest courthouses in the world. From the Place Poelaert in front, you get another amazing panoramic view of Brussels.'
+                }
+            ];
+
+            // --- 2. Initialize Map ---
+            
+            // Initialize the map without a default view
+            const map = L.map('map');
+
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // --- 3. Create Custom Icons ---
+            
+            const barIcon = L.divIcon({
+                html: beerIconSVG,
+                className: 'custom-div-icon bar-icon',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+                popupAnchor: [0, -32]
+            });
+
+            const touristIcon = L.divIcon({
+                html: touristIconSVG,
+                className: 'custom-div-icon tourist-icon',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+                popupAnchor: [0, -32]
+            });
+
+            // --- 4. Add Markers, Popups, and Path ---
+            
+            const latLngs = []; // Array to store coordinates for the polyline
+
+            stops.forEach(stop => {
+                // Add coordinate to path array
+                latLngs.push([stop.lat, stop.lng]);
+
+                // Choose icon based on type
+                const icon = stop.type === 'bar' ? barIcon : touristIcon;
+
+                // Create marker
+                const marker = L.marker([stop.lat, stop.lng], { icon: icon }).addTo(map);
+
+                // Create content for the tooltip
+                const tooltipContent = `<b>${stop.title}</b><br>${stop.description}`;
+                
+                // Bind tooltip (appears on hover)
+                marker.bindTooltip(tooltipContent, {
+                    offset: L.point(0, -28), // Adjust offset to appear above the icon
+                    direction: 'top'
+                });
+            });
+
+            // Create and add the polyline
+            const polyline = L.polyline(latLngs, {
+                color: '#0057e7', // Blue
+                weight: 4,
+                opacity: 0.7,
+                dashArray: '8, 8' // Dashed line
+            }).addTo(map);
+
+            // --- 5. Fit Map to Bounds ---
+            
+            // Zoom the map to fit the entire route
+            map.fitBounds(polyline.getBounds().pad(0.1)); // 0.1 gives a little padding
+
+        });
+    </script>
+</body>
+</html>
+
+
+
