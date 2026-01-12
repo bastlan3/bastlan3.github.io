@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Parlons Français</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; }
+    #root { min-height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <script type="text/babel">
+// ============================================
+// GAME DATA
+// ============================================
+
+const TOWN_MAP = {
+  width: 7,
+  height: 7,
+  tiles: [
+    ['tree', 'tree', 'path', 'tree', 'tree', 'tree', 'tree'],
+    ['tree', 'house', 'path', 'path', 'bakery', 'tree', 'tree'],
+    ['tree', 'path', 'path', 'fountain', 'path', 'path', 'cafe'],
+    ['path', 'path', 'market', 'path', 'path', 'path', 'path'],
+    ['tree', 'path', 'path', 'path', 'bookstore', 'path', 'tree'],
+    ['tree', 'tree', 'path', 'path', 'path', 'florist', 'tree'],
+    ['tree', 'tree', 'tree', 'path', 'tree', 'tree', 'tree'],
+  ]
+};
+
+const TILE_INFO = {
+  tree: { walkable: false, emoji: '🌳', name: 'arbre' },
+  path: { walkable: true, emoji: '🟫', name: 'chemin' },
+  fountain: { walkable: true, emoji: '⛲', name: 'fontaine', interactive: true },
+  house: { walkable: false, emoji: '🏠', name: 'maison', interactive: true, enter: true },
+  bakery: { walkable: false, emoji: '🥖', name: 'boulangerie', interactive: true, enter: true },
+  cafe: { walkable: false, emoji: '☕', name: 'café', interactive: true, enter: true },
+  market: { walkable: false, emoji: '🏪', name: 'marché', interactive: true, enter: true },
+  bookstore: { walkable: false, emoji: '📚', name: 'librairie', interactive: true, enter: true },
+  florist: { walkable: false, emoji: '💐', name: 'fleuriste', interactive: true, enter: true },
+};
+
+const NPCS = [
+  { id: 'marie', name: 'Marie', emoji: '👩‍🦰', x: 2, y: 2, greeting: 'Bonjour! Je suis Marie.', 
+    conversations: [
+      { prompt: 'Comment ça va?', responses: ['Très bien, merci!', 'Ça va bien, et vous?'] },
+      { prompt: 'Quel temps fait-il?', responses: ['Il fait beau aujourd\'hui!', 'Il fait un peu froid.'] },
+      { prompt: 'Où est la boulangerie?', responses: ['La boulangerie est au nord.', 'C\'est là-bas!'] },
+    ]
+  },
+  { id: 'pierre', name: 'Pierre', emoji: '👨', x: 4, y: 4, greeting: 'Salut! Moi c\'est Pierre.',
+    conversations: [
+      { prompt: 'Comment vous appelez-vous?', responses: ['Je m\'appelle Pierre.'] },
+      { prompt: 'Qu\'est-ce que vous faites?', responses: ['Je suis étudiant.', 'Je travaille ici.'] },
+      { prompt: 'Avez-vous l\'heure?', responses: ['Il est trois heures.', 'Désolé, je n\'ai pas de montre.'] },
+    ]
+  },
+  { id: 'sophie', name: 'Sophie', emoji: '👩', x: 5, y: 3, greeting: 'Coucou! Je suis Sophie!',
+    conversations: [
+      { prompt: 'D\'où venez-vous?', responses: ['Je viens de Paris.', 'Je suis d\'ici.'] },
+      { prompt: 'Qu\'est-ce que vous aimez?', responses: ['J\'aime les livres!', 'J\'adore le chocolat.'] },
+    ]
+  },
+];
+
+const SHOPS = {
+  bakery: {
+    name: 'Boulangerie Dupont',
+    keeper: { name: 'Monsieur Dupont', emoji: '👨‍🍳' },
+    greeting: 'Bienvenue à la boulangerie! Qu\'est-ce que vous désirez?',
+    items: [
+      { name: 'baguette', price: '1€', french: 'une baguette', image: '🥖' },
+      { name: 'croissant', price: '1.50€', french: 'un croissant', image: '🥐' },
+      { name: 'pain au chocolat', price: '1.80€', french: 'un pain au chocolat', image: '🍫' },
+      { name: 'tarte aux pommes', price: '3€', french: 'une tarte aux pommes', image: '🥧' },
+    ],
+  },
+  cafe: {
+    name: 'Café de la Place',
+    keeper: { name: 'Madame Moreau', emoji: '👩‍🦱' },
+    greeting: 'Bonjour et bienvenue! Vous désirez?',
+    items: [
+      { name: 'café', price: '2€', french: 'un café', image: '☕' },
+      { name: 'thé', price: '2.50€', french: 'un thé', image: '🍵' },
+      { name: 'chocolat chaud', price: '3€', french: 'un chocolat chaud', image: '🍫' },
+      { name: 'eau', price: '1€', french: 'une carafe d\'eau', image: '💧' },
+    ],
+  },
+  market: {
+    name: 'Marché du Village',
+    keeper: { name: 'Monsieur Martin', emoji: '👨‍🌾' },
+    greeting: 'Bonjour! Regardez mes beaux produits!',
+    items: [
+      { name: 'pommes', price: '2€/kg', french: 'des pommes', image: '🍎' },
+      { name: 'oranges', price: '2.50€/kg', french: 'des oranges', image: '🍊' },
+      { name: 'fromage', price: '5€', french: 'du fromage', image: '🧀' },
+      { name: 'tomates', price: '3€/kg', french: 'des tomates', image: '🍅' },
+    ],
+  },
+  bookstore: {
+    name: 'Librairie du Coin',
+    keeper: { name: 'Madame Petit', emoji: '👩‍🏫' },
+    greeting: 'Bienvenue! Vous cherchez quelque chose?',
+    items: [
+      { name: 'roman', price: '15€', french: 'un roman', image: '📖' },
+      { name: 'dictionnaire', price: '25€', french: 'un dictionnaire', image: '📕' },
+      { name: 'carte', price: '8€', french: 'une carte de la ville', image: '🗺️' },
+      { name: 'journal', price: '2€', french: 'un journal', image: '📰' },
+    ],
+  },
+  florist: {
+    name: 'Fleurs de Marie',
+    keeper: { name: 'Marie-Claire', emoji: '👩‍🎨' },
+    greeting: 'Bonjour! Quelles jolies fleurs pour vous aujourd\'hui?',
+    items: [
+      { name: 'roses', price: '10€', french: 'un bouquet de roses', image: '🌹' },
+      { name: 'tulipes', price: '8€', french: 'des tulipes', image: '🌷' },
+      { name: 'tournesols', price: '12€', french: 'des tournesols', image: '🌻' },
+      { name: 'plante', price: '15€', french: 'une plante verte', image: '🪴' },
+    ],
+  },
+  house: {
+    name: 'Chez Vous',
+    keeper: null,
+    greeting: 'Vous êtes chez vous. Reposez-vous un peu!',
+    items: [],
+    isHome: true,
+  }
+};
+
+const DIRECTION_WORDS = {
+  north: ['nord', 'haut', 'monter', 'avancer', 'devant', 'en haut'],
+  south: ['sud', 'bas', 'descendre', 'reculer', 'en bas', 'derrière'],
+  east: ['est', 'droite', 'à droite'],
+  west: ['ouest', 'gauche', 'à gauche'],
+};
+
+const ACTION_WORDS = {
+  enter: ['entrer', 'entre', 'rentrer', 'aller', 'visiter'],
+  talk: ['parler', 'bonjour', 'salut', 'discuter', 'hey', 'coucou'],
+  leave: ['sortir', 'partir', 'quitter', 'au revoir', 'dehors'],
+  buy: ['acheter', 'prendre', 'voudrais', 'veux', 'donnez', 'cherche'],
+};
+
+// ============================================
+// SPEECH HELPERS
+// ============================================
+
+const hasSpeechRecognition = () => {
+  return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+};
+
+const normalizeText = (text) => {
+  return text.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .trim();
+};
+
+const detectDirection = (text) => {
+  const normalized = normalizeText(text);
+  for (const [dir, words] of Object.entries(DIRECTION_WORDS)) {
+    if (words.some(w => normalized.includes(normalizeText(w)))) {
+      return dir;
+    }
+  }
+  return null;
+};
+
+const detectAction = (text) => {
+  const normalized = normalizeText(text);
+  for (const [action, words] of Object.entries(ACTION_WORDS)) {
+    if (words.some(w => normalized.includes(normalizeText(w)))) {
+      return action;
+    }
+  }
+  return null;
+};
+
+const detectItem = (text, items) => {
+  const normalized = normalizeText(text);
+  for (const item of items) {
+    if (normalized.includes(normalizeText(item.name)) || 
+        normalized.includes(normalizeText(item.french))) {
+      return item;
+    }
+  }
+  return null;
+};
+
+// ============================================
+// SOUND DATA
+// ============================================
+
+const SOUND_DATA = {
+  beginner: {
+    name: "Les Bases",
+    description: "Essential vowel distinctions",
+    tolerance: 0.7,
+    sounds: [
+      { id: 'ou', phoneme: '/u/', examples: ['tout', 'vous', 'nous', 'jour', 'pour'], tip: "Like 'oo' in 'boot'" },
+      { id: 'u', phoneme: '/y/', examples: ['tu', 'rue', 'lune', 'sur', 'plus'], tip: "Round lips like 'oo', but say 'ee'" },
+      { id: 'é', phoneme: '/e/', examples: ['café', 'été', 'parlé', 'mangé', 'allé'], tip: "Like 'ay' in 'say' but shorter" },
+      { id: 'è', phoneme: '/ɛ/', examples: ['mère', 'père', 'frère', 'être', 'tête'], tip: "Like 'e' in 'bed'" },
+      { id: 'oi', phoneme: '/wa/', examples: ['moi', 'toi', 'voir', 'soir', 'boire'], tip: "Sounds like 'wah'" },
+    ]
+  },
+  intermediate: {
+    name: "Nuances",
+    description: "Nasal sounds & tricky vowels",
+    tolerance: 0.6,
+    sounds: [
+      { id: 'eu', phoneme: '/ø/', examples: ['deux', 'peu', 'bleu', 'jeu', 'feu'], tip: "Round lips, say 'eh'" },
+      { id: 'œ', phoneme: '/œ/', examples: ['cœur', 'sœur', 'fleur', 'heure', 'beurre'], tip: "Like 'eu' but more open" },
+      { id: 'an/en', phoneme: '/ɑ̃/', examples: ['France', 'enfant', 'temps', 'vent', 'grand'], tip: "Nasal 'ah' - don't close with 'n'" },
+      { id: 'on', phoneme: '/ɔ̃/', examples: ['bon', 'mon', 'sont', 'pont', 'long'], tip: "Nasal 'oh' through nose" },
+      { id: 'in/ain', phoneme: '/ɛ̃/', examples: ['vin', 'pain', 'main', 'bien', 'fin'], tip: "Nasal 'eh' - subtle!" },
+      { id: 'r', phoneme: '/ʁ/', examples: ['rouge', 'rue', 'rare', 'rire', 'partir'], tip: "Soft gargle in throat" },
+    ]
+  },
+  advanced: {
+    name: "Maîtrise",
+    description: "Subtle distinctions & liaisons",
+    tolerance: 0.5,
+    sounds: [
+      { id: 'un', phoneme: '/œ̃/', examples: ['un', 'brun', 'parfum', 'lundi'], tip: "Rare nasal - like 'eu' nasal" },
+      { id: 'gn', phoneme: '/ɲ/', examples: ['montagne', 'campagne', 'champignon', 'ligne'], tip: "Like 'ny' in 'canyon'" },
+      { id: 'ille', phoneme: '/ij/', examples: ['fille', 'famille', 'vanille', 'oreille'], tip: "Usually 'ee-y', except ville/mille" },
+      { id: 'liaison', phoneme: 'linking', examples: ['les amis', 'nous avons', 'petit ami'], tip: "Connect final consonants to next vowel" },
+      { id: 'contrast', phoneme: 'pairs', examples: ['tu/tout', 'rue/roue', 'su/sous'], tip: "Minimal pairs - precision matters" },
+    ]
+  }
+};
+
+const WORD_POOL = [
+  { word: 'papillon', meaning: 'butterfly', phonetic: '/pa.pi.jɔ̃/', difficulty: 'intermediate' },
+  { word: 'croissant', meaning: 'croissant', phonetic: '/kʁwa.sɑ̃/', difficulty: 'beginner' },
+  { word: 'grenouille', meaning: 'frog', phonetic: '/ɡʁə.nuj/', difficulty: 'advanced' },
+  { word: 'feuille', meaning: 'leaf', phonetic: '/fœj/', difficulty: 'intermediate' },
+  { word: 'soleil', meaning: 'sun', phonetic: '/sɔ.lɛj/', difficulty: 'beginner' },
+  { word: 'boulangerie', meaning: 'bakery', phonetic: '/bu.lɑ̃ʒ.ʁi/', difficulty: 'intermediate' },
+  { word: 'oiseau', meaning: 'bird', phonetic: '/wa.zo/', difficulty: 'beginner' },
+  { word: 'bonjour', meaning: 'hello', phonetic: '/bɔ̃.ʒuʁ/', difficulty: 'beginner' },
+  { word: 'merci', meaning: 'thank you', phonetic: '/mɛʁ.si/', difficulty: 'beginner' },
+];
+
+// ============================================
+// HELPERS
+// ============================================
+
+const getDailyWord = () => {
+  const today = new Date();
+  const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+  return WORD_POOL[dayOfYear % WORD_POOL.length];
+};
+
+const levenshtein = (a, b) => {
+  const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
+  for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
+  for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
+  for (let j = 1; j <= b.length; j++) {
+    for (let i = 1; i <= a.length; i++) {
+      const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
+      matrix[j][i] = Math.min(matrix[j][i - 1] + 1, matrix[j - 1][i] + 1, matrix[j - 1][i - 1] + indicator);
+    }
+  }
+  return matrix[b.length][a.length];
+};
+
+const calculateScore = (recognized, target, tolerance) => {
+  if (!recognized) return { score: 0, feedback: 'not_heard' };
+  const nr = recognized.toLowerCase().trim();
+  const nt = target.toLowerCase().trim();
+  if (nr === nt) return { score: 100, feedback: 'perfect' };
+  const distance = levenshtein(nr, nt);
+  const similarity = 1 - (distance / Math.max(nr.length, nt.length));
+  if (similarity >= tolerance) return { score: Math.round(similarity * 100), feedback: 'close' };
+  return { score: Math.round(similarity * 100), feedback: 'try_again' };
+};
+
+const storage = {
+  get(key) {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : null;
+    } catch (e) { return null; }
+  },
+  set(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) { }
+  }
+};
+
+const speak = (text) => {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'fr-FR';
+    utterance.rate = 0.85;
+    window.speechSynthesis.speak(utterance);
+  }
+};
+
+// ============================================
+// STYLES
+// ============================================
+
+const styles = {
+  appContainer: {
+    minHeight: '100vh',
+    background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+    fontFamily: "'Segoe UI', system-ui, sans-serif",
+    color: '#f0e6d3',
+  },
+  warningBanner: {
+    background: 'rgba(231, 76, 60, 0.2)',
+    border: '1px solid rgba(231, 76, 60, 0.4)',
+    borderRadius: '0.5rem',
+    padding: '1rem',
+    marginBottom: '1.5rem',
+    textAlign: 'center',
+    fontSize: '0.95rem',
+  },
+  menuContainer: {
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '2rem',
+  },
+  menuHeader: {
+    textAlign: 'center',
+    marginBottom: '2rem',
+  },
+  menuTitle: {
+    fontSize: '2.5rem',
+    fontWeight: '700',
+    background: 'linear-gradient(135deg, #d4af37, #f0e6d3)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    marginBottom: '0.5rem',
+  },
+  menuSubtitle: {
+    color: 'rgba(240, 230, 211, 0.7)',
+    fontSize: '1rem',
+  },
+  menuCards: {
+    display: 'flex',
+    gap: '1.5rem',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  menuCard: {
+    background: 'rgba(255, 255, 255, 0.05)',
+    border: '1px solid rgba(212, 175, 55, 0.3)',
+    borderRadius: '1rem',
+    padding: '1.5rem',
+    width: '260px',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    textAlign: 'center',
+  },
+  menuCardIcon: {
+    fontSize: '2.5rem',
+    marginBottom: '0.75rem',
+  },
+  menuCardTitle: {
+    fontSize: '1.2rem',
+    fontWeight: '600',
+    marginBottom: '0.5rem',
+  },
+  menuCardDesc: {
+    color: 'rgba(240, 230, 211, 0.6)',
+    fontSize: '0.85rem',
+  },
+  menuTip: {
+    marginTop: '2rem',
+    padding: '0.75rem 1rem',
+    background: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: '0.5rem',
+    fontSize: '0.85rem',
+  },
+  header: {
+    padding: '1rem 1.5rem',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottom: '1px solid rgba(212, 175, 55, 0.2)',
+  },
+  headerLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
+  },
+  headerRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+  },
+  backBtn: {
+    background: 'none',
+    border: 'none',
+    color: 'rgba(240, 230, 211, 0.7)',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    padding: '0.5rem',
+  },
+  logo: {
+    fontSize: '1.2rem',
+    fontWeight: '600',
+    color: '#d4af37',
+  },
+  streakBadge: {
+    background: 'rgba(212, 175, 55, 0.15)',
+    padding: '0.4rem 0.8rem',
+    borderRadius: '1rem',
+    fontSize: '0.85rem',
+  },
+  navBtn: {
+    background: 'none',
+    border: '1px solid rgba(212, 175, 55, 0.3)',
+    color: '#f0e6d3',
+    padding: '0.4rem 0.8rem',
+    borderRadius: '0.4rem',
+    cursor: 'pointer',
+  },
+  main: {
+    maxWidth: '600px',
+    margin: '0 auto',
+    padding: '1.5rem',
+  },
+  practiceContainer: {
+    minHeight: '100vh',
+  },
+  wotdCard: {
+    background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.05))',
+    border: '1px solid rgba(212, 175, 55, 0.3)',
+    borderRadius: '1rem',
+    padding: '1.25rem',
+    marginBottom: '1.5rem',
+  },
+  wotdHeader: {
+    marginBottom: '0.75rem',
+  },
+  wotdLabel: {
+    fontSize: '0.8rem',
+    color: '#d4af37',
+    textTransform: 'uppercase',
+    letterSpacing: '0.1em',
+  },
+  wotdWord: {
+    fontSize: '1.8rem',
+    fontWeight: '700',
+  },
+  wotdPhonetic: {
+    color: 'rgba(240, 230, 211, 0.6)',
+    fontSize: '0.95rem',
+  },
+  wotdMeaning: {
+    color: 'rgba(240, 230, 211, 0.8)',
+    marginTop: '0.25rem',
+  },
+  wotdActions: {
+    display: 'flex',
+    gap: '0.5rem',
+    marginTop: '1rem',
+    flexWrap: 'wrap',
+  },
+  btnPrimary: {
+    padding: '0.6rem 1.2rem',
+    borderRadius: '0.5rem',
+    fontSize: '0.9rem',
+    fontWeight: '500',
+    cursor: 'pointer',
+    border: 'none',
+    background: 'linear-gradient(135deg, #d4af37, #b8942e)',
+    color: '#1a1a2e',
+  },
+  btnSecondary: {
+    padding: '0.6rem 1.2rem',
+    borderRadius: '0.5rem',
+    fontSize: '0.9rem',
+    fontWeight: '500',
+    cursor: 'pointer',
+    background: 'rgba(255, 255, 255, 0.05)',
+    color: '#f0e6d3',
+    border: '1px solid rgba(212, 175, 55, 0.3)',
+  },
+  btnSmall: {
+    padding: '0.5rem 0.75rem',
+    borderRadius: '0.4rem',
+    fontSize: '0.9rem',
+    cursor: 'pointer',
+    background: 'rgba(255, 255, 255, 0.1)',
+    border: 'none',
+    color: '#f0e6d3',
+  },
+  levelGrid: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+  },
+  levelCard: {
+    background: 'rgba(255, 255, 255, 0.03)',
+    border: '1px solid rgba(212, 175, 55, 0.2)',
+    borderRadius: '0.75rem',
+    padding: '1rem',
+    cursor: 'pointer',
+  },
+  levelHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginBottom: '0.25rem',
+  },
+  levelName: {
+    fontSize: '1.1rem',
+    fontWeight: '600',
+  },
+  levelTag: {
+    fontSize: '0.7rem',
+    padding: '0.2rem 0.5rem',
+    background: 'rgba(212, 175, 55, 0.2)',
+    borderRadius: '0.75rem',
+    color: '#d4af37',
+  },
+  levelDesc: {
+    color: 'rgba(240, 230, 211, 0.6)',
+    fontSize: '0.85rem',
+    marginBottom: '0.75rem',
+  },
+  soundChips: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '0.4rem',
+  },
+  soundChip: {
+    fontSize: '0.8rem',
+    padding: '0.2rem 0.5rem',
+    background: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: '0.25rem',
+  },
+  practiceHeader: {
+    marginBottom: '1.5rem',
+  },
+  backLink: {
+    color: 'rgba(240, 230, 211, 0.6)',
+    fontSize: '0.9rem',
+    cursor: 'pointer',
+  },
+  sectionTitle: {
+    fontSize: '1.3rem',
+    fontWeight: '600',
+    marginTop: '0.5rem',
+  },
+  soundSelector: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '0.5rem',
+    marginBottom: '1.5rem',
+  },
+  soundBtn: {
+    padding: '0.5rem 0.75rem',
+    background: 'rgba(255, 255, 255, 0.05)',
+    border: '1px solid rgba(212, 175, 55, 0.2)',
+    borderRadius: '0.4rem',
+    color: '#f0e6d3',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+  },
+  soundBtnActive: {
+    background: 'rgba(212, 175, 55, 0.2)',
+    borderColor: '#d4af37',
+  },
+  practiceArea: {
+    textAlign: 'center',
+    padding: '1rem 0',
+  },
+  currentWord: {
+    fontSize: '2.5rem',
+    fontWeight: '700',
+    marginBottom: '0.25rem',
+  },
+  phonemeHint: {
+    color: 'rgba(240, 230, 211, 0.6)',
+    fontSize: '1rem',
+  },
+  tipText: {
+    color: 'rgba(240, 230, 211, 0.5)',
+    fontSize: '0.9rem',
+    fontStyle: 'italic',
+    margin: '1rem auto',
+    maxWidth: '300px',
+  },
+  recordSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '0.75rem',
+    margin: '1.5rem 0',
+  },
+  listenBtn: {
+    padding: '0.5rem 1rem',
+    background: 'rgba(255, 255, 255, 0.1)',
+    border: '1px solid rgba(212, 175, 55, 0.3)',
+    borderRadius: '0.5rem',
+    color: '#f0e6d3',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+  },
+  recordBtn: {
+    width: '80px',
+    height: '80px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #d4af37, #b8942e)',
+    color: '#1a1a2e',
+    fontSize: '1.75rem',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: 'none',
+    cursor: 'pointer',
+    boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)',
+  },
+  recordBtnListening: {
+    background: 'linear-gradient(135deg, #e74c3c, #c0392b)',
+  },
+  listenHint: {
+    color: 'rgba(240, 230, 211, 0.5)',
+    fontSize: '0.85rem',
+  },
+  noSpeechNote: {
+    color: 'rgba(240, 230, 211, 0.5)',
+    fontSize: '0.9rem',
+    padding: '1rem',
+    background: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: '0.5rem',
+  },
+  wordNavButtons: {
+    marginTop: '1rem',
+  },
+  resultCard: {
+    background: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: '0.75rem',
+    padding: '1.25rem',
+    marginTop: '1.5rem',
+  },
+  resultScore: {
+    fontSize: '2.5rem',
+    fontWeight: '700',
+  },
+  resultFeedback: {
+    fontSize: '1rem',
+    margin: '0.5rem 0',
+  },
+  resultRecognized: {
+    color: 'rgba(240, 230, 211, 0.6)',
+    fontSize: '0.85rem',
+  },
+  resultActions: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '0.75rem',
+    marginTop: '1rem',
+  },
+  statsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '0.75rem',
+  },
+  statCard: {
+    background: 'rgba(255, 255, 255, 0.03)',
+    border: '1px solid rgba(212, 175, 55, 0.15)',
+    borderRadius: '0.5rem',
+    padding: '1rem',
+    textAlign: 'center',
+  },
+  statValue: {
+    fontSize: '2rem',
+    fontWeight: '700',
+    color: '#d4af37',
+  },
+  statLabel: {
+    color: 'rgba(240, 230, 211, 0.6)',
+    fontSize: '0.8rem',
+  },
+  gameContainer: {
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  gameHeader: {
+    padding: '0.75rem 1rem',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottom: '1px solid rgba(212, 175, 55, 0.2)',
+  },
+  gameTitle: {
+    fontSize: '1.2rem',
+    fontWeight: '600',
+    color: '#d4af37',
+  },
+  helpBtn: {
+    background: 'none',
+    border: 'none',
+    fontSize: '1.2rem',
+    cursor: 'pointer',
+  },
+  helpPanel: {
+    background: 'rgba(0, 0, 0, 0.8)',
+    padding: '1rem',
+    fontSize: '0.85rem',
+    lineHeight: '1.6',
+  },
+  gameContent: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    padding: '0.75rem',
+    gap: '0.75rem',
+    overflow: 'hidden',
+  },
+  mapSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '0.75rem',
+  },
+  mapContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  map: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+    padding: '0.5rem',
+    background: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: '0.5rem',
+  },
+  mapRow: {
+    display: 'flex',
+    gap: '2px',
+  },
+  mapTile: {
+    width: '38px',
+    height: '38px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '4px',
+    position: 'relative',
+  },
+  tileEmoji: {
+    fontSize: '1.2rem',
+  },
+  npcEmoji: {
+    fontSize: '1.2rem',
+  },
+  playerEmoji: {
+    fontSize: '1.3rem',
+    filter: 'drop-shadow(0 0 4px rgba(212, 175, 55, 0.8))',
+  },
+  contextActions: {
+    display: 'flex',
+    gap: '0.5rem',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  contextBtn: {
+    padding: '0.5rem 1rem',
+    background: 'rgba(212, 175, 55, 0.2)',
+    border: '1px solid rgba(212, 175, 55, 0.4)',
+    borderRadius: '0.5rem',
+    color: '#f0e6d3',
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+  },
+  dpad: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '4px',
+  },
+  dpadRow: {
+    display: 'flex',
+    gap: '4px',
+  },
+  dpadBtn: {
+    width: '70px',
+    height: '55px',
+    background: 'rgba(255, 255, 255, 0.1)',
+    border: '1px solid rgba(212, 175, 55, 0.3)',
+    borderRadius: '8px',
+    color: '#f0e6d3',
+    cursor: 'pointer',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '2px',
+  },
+  dpadArrow: {
+    fontSize: '1.25rem',
+  },
+  dpadLabel: {
+    fontSize: '0.7rem',
+    opacity: 0.7,
+  },
+  dpadSpacer: {
+    width: '70px',
+    height: '55px',
+  },
+  dpadCenter: {
+    width: '70px',
+    height: '55px',
+    background: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: '8px',
+  },
+  shopView: {
+    background: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: '0.75rem',
+    padding: '1rem',
+  },
+  shopHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
+    marginBottom: '1rem',
+  },
+  shopEmoji: {
+    fontSize: '2.5rem',
+  },
+  shopName: {
+    fontSize: '1.2rem',
+    fontWeight: '600',
+  },
+  shopKeeper: {
+    color: 'rgba(240, 230, 211, 0.6)',
+    fontSize: '0.85rem',
+  },
+  shopItems: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '0.5rem',
+    marginBottom: '1rem',
+  },
+  shopItemBtn: {
+    background: 'rgba(255, 255, 255, 0.05)',
+    border: '1px solid rgba(212, 175, 55, 0.2)',
+    padding: '0.6rem',
+    borderRadius: '0.5rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    fontSize: '0.85rem',
+    color: '#f0e6d3',
+    cursor: 'pointer',
+    textAlign: 'left',
+  },
+  itemEmoji: {
+    fontSize: '1.25rem',
+  },
+  itemName: {
+    flex: 1,
+  },
+  itemPrice: {
+    color: '#d4af37',
+    fontWeight: '500',
+  },
+  leaveBtn: {
+    width: '100%',
+    padding: '0.75rem',
+    background: 'rgba(231, 76, 60, 0.2)',
+    border: '1px solid rgba(231, 76, 60, 0.4)',
+    borderRadius: '0.5rem',
+    color: '#f0e6d3',
+    cursor: 'pointer',
+    fontSize: '0.95rem',
+  },
+  npcView: {
+    background: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: '0.75rem',
+    padding: '1rem',
+  },
+  npcHeader: {
+    textAlign: 'center',
+    marginBottom: '1rem',
+  },
+  npcBigEmoji: {
+    fontSize: '3rem',
+  },
+  npcName: {
+    fontSize: '1.2rem',
+    fontWeight: '600',
+  },
+  npcTopics: {
+    marginBottom: '1rem',
+  },
+  topicsLabel: {
+    color: 'rgba(240, 230, 211, 0.6)',
+    fontSize: '0.8rem',
+    marginBottom: '0.5rem',
+  },
+  topicButtons: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+  },
+  topicBtn: {
+    background: 'rgba(212, 175, 55, 0.15)',
+    border: '1px solid rgba(212, 175, 55, 0.3)',
+    padding: '0.6rem 0.8rem',
+    borderRadius: '0.5rem',
+    color: '#f0e6d3',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    textAlign: 'left',
+  },
+  dialogueBox: {
+    flex: 1,
+    background: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: '0.5rem',
+    overflow: 'hidden',
+    minHeight: '120px',
+    maxHeight: '150px',
+  },
+  dialogueScroll: {
+    height: '100%',
+    overflowY: 'auto',
+    padding: '0.75rem',
+  },
+  dialogueEmpty: {
+    color: 'rgba(240, 230, 211, 0.5)',
+    textAlign: 'center',
+    fontSize: '0.9rem',
+    lineHeight: '1.6',
+  },
+  dialogueLine: {
+    marginBottom: '0.4rem',
+    fontSize: '0.85rem',
+    lineHeight: '1.4',
+  },
+  dialoguePlayer: {
+    color: '#7ec8e3',
+  },
+  dialogueNPC: {
+    color: '#f0e6d3',
+  },
+  dialogueSystem: {
+    color: 'rgba(240, 230, 211, 0.5)',
+    fontStyle: 'italic',
+  },
+  dialogueHint: {
+    color: '#d4af37',
+    fontSize: '0.8rem',
+  },
+  dialogueAction: {
+    color: 'rgba(240, 230, 211, 0.7)',
+  },
+  inventory: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    padding: '0.5rem',
+    background: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: '0.4rem',
+  },
+  inventoryLabel: {
+    fontSize: '1.25rem',
+  },
+  inventoryItem: {
+    fontSize: '1.25rem',
+    cursor: 'default',
+  },
+  gameControls: {
+    padding: '0.75rem',
+    borderTop: '1px solid rgba(212, 175, 55, 0.2)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '0.5rem',
+  },
+  lastCommand: {
+    color: 'rgba(240, 230, 211, 0.5)',
+    fontSize: '0.85rem',
+  },
+  bigRecordBtn: {
+    width: '100%',
+    maxWidth: '300px',
+    padding: '0.75rem',
+    borderRadius: '2rem',
+    background: 'linear-gradient(135deg, #d4af37, #b8942e)',
+    color: '#1a1a2e',
+    fontSize: '1rem',
+    fontWeight: '600',
+    border: 'none',
+    cursor: 'pointer',
+    boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)',
+  },
+  bigRecordBtnActive: {
+    background: 'linear-gradient(135deg, #e74c3c, #c0392b)',
+    color: '#fff',
+  },
+};
+
+// ============================================
+// MAIN APP
+// ============================================
+
+function FrenchLearningApp() {
+  const [appMode, setAppMode] = React.useState('menu');
+  const [speechSupported] = React.useState(hasSpeechRecognition());
+  
+  return (
+    <div style={styles.appContainer}>
+      {appMode === 'menu' && <MainMenu onSelect={setAppMode} speechSupported={speechSupported} />}
+      {appMode === 'practice' && <PracticeMode onBack={() => setAppMode('menu')} speechSupported={speechSupported} />}
+      {appMode === 'game' && <GameMode onBack={() => setAppMode('menu')} speechSupported={speechSupported} />}
+    </div>
+  );
+}
+
+// ============================================
+// MAIN MENU
+// ============================================
+
+function MainMenu({ onSelect, speechSupported }) {
+  return (
+    <div style={styles.menuContainer}>
+      <div style={styles.menuHeader}>
+        <h1 style={styles.menuTitle}>Parlons Français</h1>
+        <p style={styles.menuSubtitle}>Master French sounds through practice and play</p>
+      </div>
+      
+      {!speechSupported && (
+        <div style={styles.warningBanner}>
+          ⚠️ Speech recognition not available. Using button controls.
+          <br />
+          <span style={{ fontSize: '0.85rem', opacity: 0.8 }}>For voice control, use Chrome or Edge.</span>
+        </div>
+      )}
+      
+      <div style={styles.menuCards}>
+        <div style={styles.menuCard} onClick={() => onSelect('practice')}>
+          <div style={styles.menuCardIcon}>🎤</div>
+          <h2 style={styles.menuCardTitle}>Practice Sounds</h2>
+          <p style={styles.menuCardDesc}>
+            {speechSupported ? 'Train your pronunciation' : 'Listen and learn French sounds'}
+          </p>
+        </div>
+        
+        <div style={styles.menuCard} onClick={() => onSelect('game')}>
+          <div style={styles.menuCardIcon}>🏘️</div>
+          <h2 style={styles.menuCardTitle}>Explore Town</h2>
+          <p style={styles.menuCardDesc}>
+            {speechSupported ? 'Navigate using your voice' : 'Explore with touch controls'}
+          </p>
+        </div>
+      </div>
+      
+      <div style={styles.menuTip}>
+        💡 {speechSupported ? 'Voice controls enabled!' : 'Tap buttons to navigate. NPCs speak French!'}
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// PRACTICE MODE
+// ============================================
+
+function PracticeMode({ onBack, speechSupported }) {
+  const [view, setView] = React.useState('home');
+  const [selectedLevel, setSelectedLevel] = React.useState(null);
+  const [currentSound, setCurrentSound] = React.useState(null);
+  const [currentWord, setCurrentWord] = React.useState(null);
+  const [isListening, setIsListening] = React.useState(false);
+  const [result, setResult] = React.useState(null);
+  const [progress, setProgress] = React.useState({});
+  const [streak, setStreak] = React.useState(0);
+  const [dailyWord] = React.useState(getDailyWord());
+  const recognitionRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const saved = storage.get('french-progress');
+    if (saved) setProgress(saved);
+    const streakData = storage.get('french-streak');
+    if (streakData) {
+      const today = new Date().toDateString();
+      const yesterday = new Date(Date.now() - 86400000).toDateString();
+      if (streakData.lastDate === today || streakData.lastDate === yesterday) {
+        setStreak(streakData.streak);
+      }
+    }
+  }, []);
+
+  const startListening = React.useCallback((targetWord) => {
+    if (!speechSupported) return;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+    recognition.lang = 'fr-FR';
+    recognition.interimResults = false;
+    recognition.onstart = () => setIsListening(true);
+    recognition.onresult = (event) => {
+      const text = event.results[0][0].transcript;
+      const level = SOUND_DATA[selectedLevel];
+      const tolerance = level ? level.tolerance : 0.6;
+      const scoreResult = calculateScore(text, targetWord, tolerance);
+      setResult({ ...scoreResult, recognized: text, target: targetWord });
+      setIsListening(false);
+    };
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+    recognition.start();
+  }, [selectedLevel, speechSupported]);
+
+  const pickNewWord = () => {
+    if (!currentSound) return;
+    const newWord = currentSound.examples[Math.floor(Math.random() * currentSound.examples.length)];
+    setCurrentWord(newWord);
+    setResult(null);
+  };
+
+  return (
+    <div style={styles.practiceContainer}>
+      <header style={styles.header}>
+        <div style={styles.headerLeft}>
+          <button style={styles.backBtn} onClick={onBack}>← Menu</button>
+          <div style={styles.logo}>Practice</div>
+        </div>
+        <div style={styles.headerRight}>
+          {streak > 0 && <div style={styles.streakBadge}>🔥 {streak}</div>}
+        </div>
+      </header>
+
+      <main style={styles.main}>
+        {view === 'home' && (
+          <>
+            <div style={styles.wotdCard}>
+              <div style={styles.wotdHeader}>
+                <span style={styles.wotdLabel}>✨ Mot du Jour</span>
+              </div>
+              <div style={styles.wotdWord}>{dailyWord?.word}</div>
+              <div style={styles.wotdPhonetic}>{dailyWord?.phonetic}</div>
+              <div style={styles.wotdMeaning}>"{dailyWord?.meaning}"</div>
+              <div style={styles.wotdActions}>
+                <button style={styles.btnSmall} onClick={() => speak(dailyWord?.word)}>🔊 Listen</button>
+              </div>
+            </div>
+
+            <div style={styles.levelGrid}>
+              {Object.entries(SOUND_DATA).map(([key, level]) => (
+                <div key={key} style={styles.levelCard} onClick={() => {
+                  setSelectedLevel(key);
+                  setCurrentSound(level.sounds[0]);
+                  setCurrentWord(level.sounds[0].examples[0]);
+                  setView('practice');
+                  setResult(null);
+                }}>
+                  <div style={styles.levelHeader}>
+                    <span style={styles.levelName}>{level.name}</span>
+                    <span style={styles.levelTag}>{key}</span>
+                  </div>
+                  <p style={styles.levelDesc}>{level.description}</p>
+                  <div style={styles.soundChips}>
+                    {level.sounds.map(s => <span key={s.id} style={styles.soundChip}>{s.id}</span>)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {view === 'practice' && selectedLevel && (
+          <>
+            <div style={styles.practiceHeader}>
+              <span style={styles.backLink} onClick={() => setView('home')}>← Back</span>
+              <h2 style={styles.sectionTitle}>{SOUND_DATA[selectedLevel].name}</h2>
+            </div>
+            <div style={styles.soundSelector}>
+              {SOUND_DATA[selectedLevel].sounds.map(sound => (
+                <button key={sound.id} style={{
+                  ...styles.soundBtn,
+                  ...(currentSound?.id === sound.id ? styles.soundBtnActive : {})
+                }} onClick={() => { setCurrentSound(sound); setCurrentWord(sound.examples[0]); setResult(null); }}>
+                  {sound.id}
+                </button>
+              ))}
+            </div>
+            {currentSound && (
+              <div style={styles.practiceArea}>
+                <div style={styles.currentWord}>{currentWord}</div>
+                <div style={styles.phonemeHint}>{currentSound.phoneme}</div>
+                <p style={styles.tipText}>💡 {currentSound.tip}</p>
+                <div style={styles.recordSection}>
+                  <button style={styles.listenBtn} onClick={() => speak(currentWord)}>🔊 Listen</button>
+                  {speechSupported ? (
+                    <>
+                      <button style={{ ...styles.recordBtn, ...(isListening ? styles.recordBtnListening : {}) }}
+                        onClick={() => isListening ? recognitionRef.current?.stop() : startListening(currentWord)}>
+                        {isListening ? '⏹' : '🎤'}
+                      </button>
+                      <span style={styles.listenHint}>{isListening ? 'Listening...' : 'Tap to record'}</span>
+                    </>
+                  ) : (
+                    <p style={styles.noSpeechNote}>Listen and repeat aloud!</p>
+                  )}
+                </div>
+                <div style={styles.wordNavButtons}>
+                  <button style={styles.btnSecondary} onClick={pickNewWord}>Next Word →</button>
+                </div>
+                {result && (
+                  <div style={styles.resultCard}>
+                    <div style={{...styles.resultScore, color: result.feedback === 'perfect' ? '#2ecc71' : result.feedback === 'close' ? '#f39c12' : '#e74c3c'}}>
+                      {result.score}%
+                    </div>
+                    <div style={styles.resultFeedback}>
+                      {result.feedback === 'perfect' && '🎉 Parfait!'}
+                      {result.feedback === 'close' && '👍 Almost!'}
+                      {result.feedback === 'try_again' && '💪 Keep trying'}
+                    </div>
+                    {result.recognized && <p style={styles.resultRecognized}>Heard: "{result.recognized}"</p>}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </main>
+    </div>
+  );
+}
+
+// ============================================
+// GAME MODE
+// ============================================
+
+function GameMode({ onBack, speechSupported }) {
+  const [playerPos, setPlayerPos] = React.useState({ x: 2, y: 3 });
+  const [currentShop, setCurrentShop] = React.useState(null);
+  const [currentNPC, setCurrentNPC] = React.useState(null);
+  const [dialogueHistory, setDialogueHistory] = React.useState([]);
+  const [isListening, setIsListening] = React.useState(false);
+  const [lastCommand, setLastCommand] = React.useState('');
+  const [inventory, setInventory] = React.useState([]);
+  const [helpOpen, setHelpOpen] = React.useState(false);
+  const recognitionRef = React.useRef(null);
+  const dialogueEndRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (dialogueEndRef.current) {
+      dialogueEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [dialogueHistory]);
+
+  const addDialogue = (speaker, text, type = 'normal') => {
+    setDialogueHistory(prev => [...prev.slice(-15), { speaker, text, type, id: Date.now() }]);
+  };
+
+  const getNearbyNPC = () => {
+    return NPCS.find(npc => Math.abs(npc.x - playerPos.x) <= 1 && Math.abs(npc.y - playerPos.y) <= 1);
+  };
+
+  const getAdjacentShop = () => {
+    const dirs = [{dx:0,dy:-1},{dx:0,dy:1},{dx:1,dy:0},{dx:-1,dy:0}];
+    for (const {dx, dy} of dirs) {
+      const nx = playerPos.x + dx, ny = playerPos.y + dy;
+      if (nx >= 0 && nx < 7 && ny >= 0 && ny < 7) {
+        const tile = TOWN_MAP.tiles[ny][nx];
+        if (TILE_INFO[tile]?.enter && SHOPS[tile]) {
+          return { type: tile, ...SHOPS[tile] };
+        }
+      }
+    }
+    return null;
+  };
+
+  const movePlayer = (direction) => {
+    const deltas = { north: {dx:0,dy:-1}, south: {dx:0,dy:1}, east: {dx:1,dy:0}, west: {dx:-1,dy:0} };
+    const delta = deltas[direction];
+    if (!delta) return;
+    const nx = playerPos.x + delta.dx, ny = playerPos.y + delta.dy;
+    if (nx < 0 || nx >= 7 || ny < 0 || ny >= 7) {
+      addDialogue('Système', 'Vous ne pouvez pas aller par là.', 'system');
+      return;
+    }
+    const tileType = TOWN_MAP.tiles[ny][nx];
+    const tileInfo = TILE_INFO[tileType];
+    if (!tileInfo.walkable) {
+      if (tileInfo.enter) addDialogue('Système', `Tap "Enter" to visit ${tileInfo.name}.`, 'hint');
+      else addDialogue('Système', `Il y a ${tileInfo.name} ici.`, 'system');
+      return;
+    }
+    setPlayerPos({ x: nx, y: ny });
+    const names = { north: 'au nord', south: 'au sud', east: 'à l\'est', west: 'à l\'ouest' };
+    addDialogue('Vous', `Vous allez ${names[direction]}.`, 'action');
+  };
+
+  const enterShop = () => {
+    const shop = getAdjacentShop();
+    if (shop) {
+      setCurrentShop(shop);
+      addDialogue('Système', `Vous entrez dans ${shop.name}.`, 'action');
+      addDialogue(shop.keeper?.name || 'Vendeur', shop.greeting, 'npc');
+      speak(shop.greeting);
+    }
+  };
+
+  const leaveShop = () => {
+    addDialogue('Vous', 'Au revoir!', 'player');
+    speak('Au revoir!');
+    setTimeout(() => {
+      addDialogue(currentShop?.keeper?.name || 'Vendeur', 'Au revoir! Bonne journée!', 'npc');
+      speak('Au revoir! Bonne journée!');
+      setCurrentShop(null);
+    }, 500);
+  };
+
+  const buyItem = (item) => {
+    addDialogue('Vous', `Je voudrais ${item.french}, s'il vous plaît.`, 'player');
+    speak(`Je voudrais ${item.french}, s'il vous plaît.`);
+    setTimeout(() => {
+      const response = `Voici ${item.french}! Ça fait ${item.price}.`;
+      addDialogue(currentShop?.keeper?.name || 'Vendeur', response, 'npc');
+      speak(response);
+      setInventory(prev => [...prev, item]);
+    }, 1000);
+  };
+
+  const talkToNPC = () => {
+    const npc = getNearbyNPC();
+    if (npc) {
+      setCurrentNPC(npc);
+      addDialogue('Vous', 'Bonjour!', 'player');
+      speak('Bonjour!');
+      setTimeout(() => {
+        addDialogue(npc.name, npc.greeting, 'npc');
+        speak(npc.greeting);
+      }, 500);
+    }
+  };
+
+  const askNPC = (conv) => {
+    addDialogue('Vous', conv.prompt, 'player');
+    speak(conv.prompt);
+    setTimeout(() => {
+      const response = conv.responses[Math.floor(Math.random() * conv.responses.length)];
+      addDialogue(currentNPC.name, response, 'npc');
+      speak(response);
+    }, 800);
+  };
+
+  const leaveNPC = () => {
+    addDialogue('Vous', 'Au revoir!', 'player');
+    speak('Au revoir!');
+    setTimeout(() => {
+      addDialogue(currentNPC?.name, 'Au revoir! À bientôt!', 'npc');
+      speak('Au revoir! À bientôt!');
+      setCurrentNPC(null);
+    }, 500);
+  };
+
+  const startListening = () => {
+    if (!speechSupported) return;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+    recognition.lang = 'fr-FR';
+    recognition.onstart = () => setIsListening(true);
+    recognition.onresult = (event) => {
+      const text = event.results[0][0].transcript;
+      setLastCommand(text);
+      const dir = detectDirection(text);
+      const action = detectAction(text);
+      if (currentShop) {
+        if (action === 'leave') { leaveShop(); }
+        else {
+          const item = detectItem(text, currentShop.items);
+          if (item) buyItem(item);
+        }
+      } else if (currentNPC) {
+        if (action === 'leave') leaveNPC();
+      } else {
+        if (dir) movePlayer(dir);
+        else if (action === 'enter') enterShop();
+        else if (action === 'talk') talkToNPC();
+      }
+      setIsListening(false);
+    };
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+    recognition.start();
+  };
+
+  const nearbyNPC = getNearbyNPC();
+  const adjacentShop = getAdjacentShop();
+
+  return (
+    <div style={styles.gameContainer}>
+      <header style={styles.gameHeader}>
+        <button style={styles.backBtn} onClick={onBack}>← Menu</button>
+        <h1 style={styles.gameTitle}>Village Français</h1>
+        <button style={styles.helpBtn} onClick={() => setHelpOpen(!helpOpen)}>❓</button>
+      </header>
+
+      {helpOpen && (
+        <div style={styles.helpPanel}>
+          <h3>How to Play</h3>
+          <p><strong>Move:</strong> Use D-pad or say "nord/sud/est/ouest"</p>
+          <p><strong>Enter:</strong> Tap button or say "entrer"</p>
+          <p><strong>Talk:</strong> Tap button or say "bonjour"</p>
+          <p><strong>Buy:</strong> Tap item or say "je voudrais..."</p>
+        </div>
+      )}
+
+      <div style={styles.gameContent}>
+        {!currentShop && !currentNPC && (
+          <>
+            <div style={styles.mapSection}>
+              <div style={styles.mapContainer}>
+                <div style={styles.map}>
+                  {TOWN_MAP.tiles.map((row, y) => (
+                    <div key={y} style={styles.mapRow}>
+                      {row.map((tile, x) => {
+                        const isPlayer = playerPos.x === x && playerPos.y === y;
+                        const npc = NPCS.find(n => n.x === x && n.y === y);
+                        const info = TILE_INFO[tile];
+                        return (
+                          <div key={x} style={{...styles.mapTile, background: info.walkable ? '#8B7355' : (info.interactive ? '#6B8E6B' : '#2D5A27')}}>
+                            {!isPlayer && !npc && <span style={styles.tileEmoji}>{info.emoji}</span>}
+                            {npc && !isPlayer && <span style={styles.npcEmoji}>{npc.emoji}</span>}
+                            {isPlayer && <span style={styles.playerEmoji}>🧑</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={styles.contextActions}>
+                {nearbyNPC && <button style={styles.contextBtn} onClick={talkToNPC}>💬 Talk to {nearbyNPC.name}</button>}
+                {adjacentShop && <button style={styles.contextBtn} onClick={enterShop}>🚪 Enter {adjacentShop.name}</button>}
+              </div>
+            </div>
+            <div style={styles.dpad}>
+              <div style={styles.dpadRow}>
+                <div style={styles.dpadSpacer} />
+                <button style={styles.dpadBtn} onClick={() => movePlayer('north')}><span style={styles.dpadArrow}>↑</span><span style={styles.dpadLabel}>Nord</span></button>
+                <div style={styles.dpadSpacer} />
+              </div>
+              <div style={styles.dpadRow}>
+                <button style={styles.dpadBtn} onClick={() => movePlayer('west')}><span style={styles.dpadArrow}>←</span><span style={styles.dpadLabel}>Ouest</span></button>
+                <div style={styles.dpadCenter} />
+                <button style={styles.dpadBtn} onClick={() => movePlayer('east')}><span style={styles.dpadArrow}>→</span><span style={styles.dpadLabel}>Est</span></button>
+              </div>
+              <div style={styles.dpadRow}>
+                <div style={styles.dpadSpacer} />
+                <button style={styles.dpadBtn} onClick={() => movePlayer('south')}><span style={styles.dpadArrow}>↓</span><span style={styles.dpadLabel}>Sud</span></button>
+                <div style={styles.dpadSpacer} />
+              </div>
+            </div>
+          </>
+        )}
+
+        {currentShop && (
+          <div style={styles.shopView}>
+            <div style={styles.shopHeader}>
+              <span style={styles.shopEmoji}>{currentShop.keeper?.emoji || '🏪'}</span>
+              <div>
+                <h2 style={styles.shopName}>{currentShop.name}</h2>
+                {currentShop.keeper && <p style={styles.shopKeeper}>{currentShop.keeper.name}</p>}
+              </div>
+            </div>
+            {currentShop.items.length > 0 && (
+              <div style={styles.shopItems}>
+                {currentShop.items.map(item => (
+                  <button key={item.name} style={styles.shopItemBtn} onClick={() => buyItem(item)}>
+                    <span style={styles.itemEmoji}>{item.image}</span>
+                    <span style={styles.itemName}>{item.french}</span>
+                    <span style={styles.itemPrice}>{item.price}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <button style={styles.leaveBtn} onClick={leaveShop}>👋 Au revoir</button>
+          </div>
+        )}
+
+        {currentNPC && (
+          <div style={styles.npcView}>
+            <div style={styles.npcHeader}>
+              <span style={styles.npcBigEmoji}>{currentNPC.emoji}</span>
+              <h2 style={styles.npcName}>{currentNPC.name}</h2>
+            </div>
+            <div style={styles.npcTopics}>
+              <p style={styles.topicsLabel}>Ask about:</p>
+              <div style={styles.topicButtons}>
+                {currentNPC.conversations.map((c, i) => (
+                  <button key={i} style={styles.topicBtn} onClick={() => askNPC(c)}>{c.prompt}</button>
+                ))}
+              </div>
+            </div>
+            <button style={styles.leaveBtn} onClick={leaveNPC}>👋 Au revoir</button>
+          </div>
+        )}
+
+        <div style={styles.dialogueBox}>
+          <div style={styles.dialogueScroll}>
+            {dialogueHistory.length === 0 && (
+              <p style={styles.dialogueEmpty}>Bienvenue au village! 🏘️<br/>Use buttons to explore!</p>
+            )}
+            {dialogueHistory.map(d => (
+              <div key={d.id} style={{
+                ...styles.dialogueLine,
+                ...(d.type === 'player' ? styles.dialoguePlayer : {}),
+                ...(d.type === 'npc' ? styles.dialogueNPC : {}),
+                ...(d.type === 'system' ? styles.dialogueSystem : {}),
+                ...(d.type === 'hint' ? styles.dialogueHint : {}),
+                ...(d.type === 'action' ? styles.dialogueAction : {}),
+              }}>
+                {d.speaker && <strong>{d.speaker}: </strong>}{d.text}
+              </div>
+            ))}
+            <div ref={dialogueEndRef} />
+          </div>
+        </div>
+
+        {inventory.length > 0 && (
+          <div style={styles.inventory}>
+            <span style={styles.inventoryLabel}>🎒</span>
+            {inventory.map((item, i) => <span key={i} style={styles.inventoryItem}>{item.image}</span>)}
+          </div>
+        )}
+      </div>
+
+      {speechSupported && !currentShop && !currentNPC && (
+        <div style={styles.gameControls}>
+          {lastCommand && <div style={styles.lastCommand}>"{lastCommand}"</div>}
+          <button style={{...styles.bigRecordBtn, ...(isListening ? styles.bigRecordBtnActive : {})}} onClick={startListening}>
+            {isListening ? '🎤 Listening...' : '🎤 Speak French'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================
+// RENDER
+// ============================================
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<FrenchLearningApp />);
+  </script>
+</body>
+</html>
