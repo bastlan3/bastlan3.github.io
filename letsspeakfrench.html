@@ -1115,6 +1115,8 @@ function PracticeMode({ onBack, speechSupported }) {
     recognition.interimResults = false;
     recognition.onstart = () => setIsListening(true);
     recognition.onresult = (event) => {
+    recognition.onresult = (event) => {
+      recognition.stop(); // Force stop immediately
       const text = event.results[0][0].transcript;
       const level = SOUND_DATA[selectedLevel];
       const tolerance = level ? level.tolerance : 0.6;
